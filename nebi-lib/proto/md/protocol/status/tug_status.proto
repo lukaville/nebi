@@ -1,0 +1,41 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message TugStatusData {
+  optional uint64 timestamp_ns = 1;
+  optional uint32 session_id = 2;
+  optional float p1_force = 3;
+  optional float p2_force = 4;
+  optional float rope_position = 5;
+  optional float rope_velocity = 6;
+  optional float p1_distance_m = 7;
+  optional float p2_distance_m = 8;
+  optional uint32 countdown_remaining_ms = 9;
+  optional uint32 online_mask = 10;
+  optional uint32 schema_version = 11;
+  optional uint32 p1_source = 12;
+  optional uint32 p2_source = 13;
+  optional uint32 roster_type = 14;
+  optional uint32 result_level = 15;
+  optional uint32 termination_reason = 16;
+  optional uint32 warmup_progress = 17;
+  optional uint32 warmup_active_mask = 18;
+  optional uint32 capability_flags = 19;
+  optional uint32 config_version = 20;
+  optional float reference_position_m = 21;
+  optional float actual_position_m = 22;
+  optional float target_velocity_mps = 23;
+  optional float actual_velocity_mps = 24;
+  optional uint32 referee_baseline_player = 25;
+  optional uint32 referee_prompt_player = 26;
+  optional uint32 referee_prompt_action = 27;
+  optional float match_endpoint_m = 28;
+  optional float guidance_step_m = 29;
+  bytes input_quality = 30;
+}
+
+message TugStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.TugStatusData data = 2;
+}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message LedCtrlOnewayData {
+  optional uint32 seq = 1;
+  optional uint64 timestamp_us = 2;
+  repeated uint32 rgbw_data = 3;
+}
+
+message LedCtrlOneway {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.LedCtrlOnewayData data = 2;
+}

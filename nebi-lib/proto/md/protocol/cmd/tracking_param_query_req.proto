@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message TrackingParamQueryReqData {
+  optional uint32 param_id = 1;
+  bytes reserved = 2;
+}
+
+message TrackingParamQueryReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.TrackingParamQueryReqData data = 2;
+}

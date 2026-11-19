@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message DeviceSecurityDeviceActivateReqData {
+  bytes request_id = 1;
+  optional uint64 activated_at = 2;
+  string activation_token = 3;
+}
+
+message DeviceSecurityDeviceActivateReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.DeviceSecurityDeviceActivateReqData data = 2;
+}

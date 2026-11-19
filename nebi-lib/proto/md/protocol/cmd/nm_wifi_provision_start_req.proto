@@ -1,0 +1,17 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message NmWifiProvisionStartReqData {
+  optional uint32 trigger_source = 1;
+  bytes resv = 2;
+  bytes uuid = 3;
+  optional uint32 mqtt_endpoint_len = 4;
+  bytes mqtt_endpoint = 5;
+  bytes mqtt_resv = 6;
+}
+
+message NmWifiProvisionStartReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.NmWifiProvisionStartReqData data = 2;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/game_menu_configuration.proto";
+
+message GameMenuSetReqData {
+  .md.protocol.common.GameMenuConfiguration configuration = 1;
+}
+
+message GameMenuSetReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.GameMenuSetReqData data = 2;
+}

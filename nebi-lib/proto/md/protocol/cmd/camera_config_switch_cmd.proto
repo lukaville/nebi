@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CameraConfigSwitchCmdData {
+  optional uint32 profile_id = 1;
+}
+
+message CameraConfigSwitchCmd {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CameraConfigSwitchCmdData data = 2;
+}

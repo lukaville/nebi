@@ -1,0 +1,11 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message VtDisconnReqData {
+}
+
+message VtDisconnReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.VtDisconnReqData data = 2;
+}

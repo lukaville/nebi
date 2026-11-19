@@ -1,0 +1,28 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message CameraRelativeTrajectoryReplayStatusData {
+  optional uint32 phase = 1;
+  optional uint32 accepted_client_request_id = 2;
+  optional uint32 replay_session_id = 3;
+  optional uint32 trajectory_id_len = 4;
+  bytes trajectory_id = 5;
+  optional uint32 sample_index = 6;
+  optional uint32 terminal_reason = 7;
+  optional uint32 restored_sub_mode = 8;
+  optional uint32 oa_flags = 9;
+  optional uint32 elapsed_ms = 10;
+  optional uint32 duration_ms = 11;
+  optional uint32 preparation_state = 12;
+  optional uint32 preparation_elapsed_ms = 13;
+  optional uint32 preparation_duration_ms = 14;
+  optional uint32 robot_position_valid = 15;
+  optional float robot_relative_x_m = 16;
+  optional float robot_relative_y_m = 17;
+}
+
+message CameraRelativeTrajectoryReplayStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.CameraRelativeTrajectoryReplayStatusData data = 2;
+}

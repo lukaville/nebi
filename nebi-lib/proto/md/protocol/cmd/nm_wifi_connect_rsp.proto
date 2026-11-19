@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message NmWifiConnectRspData {
+  optional uint32 result = 1;
+  optional uint32 ssid_len = 2;
+  bytes ssid = 3;
+  bytes resv = 4;
+}
+
+message NmWifiConnectRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.NmWifiConnectRspData data = 2;
+}

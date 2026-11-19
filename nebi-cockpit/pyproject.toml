@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=77"]   # PEP 639 license expression + license-files
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nebi-cockpit"
+version = "0.3.0"
+description = "Unofficial web cockpit compatible with the Beni robot (LZ110/LZ100): FastAPI control server, live H.265 FPV video, intercom, extensions. Not affiliated with the manufacturer."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]   # copies of the monorepo root files (PEP 639 forbids ../ paths)
+authors = [{ name = "The nebi authors" }]
+keywords = ["robot", "robotics", "beni", "lz110", "lz100", "fastapi", "cockpit", "fpv", "teleoperation", "h265"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Framework :: AsyncIO",
+    "Framework :: FastAPI",
+    "Environment :: Web Environment",
+    "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+    "Topic :: System :: Hardware",
+    "Topic :: Multimedia :: Video",
+    "Typing :: Typed",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "nebi-lib[sim]>=0.2.0,<0.3",  # the robot SDK; [sim]: the cockpit can run the simulator (`serve --sim`)
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "websockets>=13.0",
+    "python-multipart>=0.0.9",
+    "av>=13.0.0",
+    "pillow>=10.0.0",
+    "numpy>=1.24",
+]
+
+# TODO(publish): add [project.urls] (Homepage / Source / Issues / Changelog) once the public repository exists.
+# [project.urls]
+# Source = "https://..."
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.6",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+nebi-cockpit = "nebi_cockpit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"nebi_cockpit" = ["py.typed", "static/*", "static/**/*"]   # web UI: without this a wheel install serves no page
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+# ruff + mypy: shared monorepo config in ../pyproject.toml

@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYNEBI_TTS_SYSTEM: "0"      # never call the OS speech engine in tests
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  check:
+    name: lint, types, tests (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: macos-latest
+            python: "3.13"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: "*/pyproject.toml"
+      - name: Install
+        run: PYTHON=python scripts/dev-setup.sh
+      - name: Lint, type-check and test
+        run: scripts/check.sh
+
+  build:
+    name: build and smoke-test packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Build sdists and wheels
+        run: |
+          python -m pip install build twine
+          scripts/build.sh
+      - name: Install the wheels into a clean venv and import everything
+        run: |
+          python -m venv /tmp/smoke
+          /tmp/smoke/bin/pip install dist/*.whl
+          /tmp/smoke/bin/python -c "import nebi, nebi_cockpit, nebi_cli, nebi_voice, nebi_voice.extension; print(nebi.__version__)"
+          /tmp/smoke/bin/nebi --help > /dev/null
+          /tmp/smoke/bin/nebi-cockpit --help > /dev/null
+          /tmp/smoke/bin/nebi-voice --help > /dev/null
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

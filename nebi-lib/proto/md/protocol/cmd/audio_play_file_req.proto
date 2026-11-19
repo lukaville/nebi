@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message AudioPlayFileReqData {
+  optional uint32 session_id = 1;
+  optional uint32 play_action = 2;
+  bytes audio_path = 3;
+}
+
+message AudioPlayFileReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.AudioPlayFileReqData data = 2;
+}

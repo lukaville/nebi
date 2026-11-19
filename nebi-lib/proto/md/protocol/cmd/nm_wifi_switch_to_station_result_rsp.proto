@@ -1,0 +1,16 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message NmWifiSwitchToStationResultRspData {
+  optional uint32 valid = 1;
+  optional uint32 pending = 2;
+  optional uint32 result = 3;
+  optional uint32 current_mode = 4;
+  bytes resv = 5;
+}
+
+message NmWifiSwitchToStationResultRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.NmWifiSwitchToStationResultRspData data = 2;
+}

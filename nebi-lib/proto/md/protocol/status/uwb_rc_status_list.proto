@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/uwb_rc_status_entry.proto";
+
+message UwbRcStatusListData {
+  repeated .md.protocol.common.UwbRcStatusEntry entries = 1;
+}
+
+message UwbRcStatusList {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.UwbRcStatusListData data = 2;
+}

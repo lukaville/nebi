@@ -1,0 +1,18 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CommonGetVersionRspData {
+  optional uint32 ret_code = 1;
+  optional uint32 major_version = 2;
+  optional uint32 minor_version = 3;
+  bytes hardware_version = 4;
+  bytes loader_version = 5;
+  bytes firmware_version = 6;
+  optional uint32 is_mass_product = 7;
+}
+
+message CommonGetVersionRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CommonGetVersionRspData data = 2;
+}

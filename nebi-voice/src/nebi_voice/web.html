@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nebi Voice Lab</title>
+<style>
+  :root {
+    --bg: #f4f2ec; --panel: #fffdf8; --ink: #23211c; --muted: #6f6a5f; --line: #e2ddd0;
+    --accent: #d9771f; --accent-ink: #fff; --accent-soft: #fbe7d3; --changed: #b4530f; --track: #e6e0d2;
+    --shadow: 0 1px 2px rgba(40,30,10,.06), 0 4px 16px rgba(40,30,10,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17161a; --panel: #1f1e23; --ink: #ece8df; --muted: #9a958a; --line: #34323a;
+      --accent: #f0913a; --accent-ink: #1b1306; --accent-soft: #3a2a1b; --changed: #ffb070; --track: #3a3841;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; align-items: baseline; gap: 12px; padding: 18px 24px 6px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 20px; letter-spacing: -.01em; }
+  header .sub { color: var(--muted); }
+  main { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.15fr); gap: 16px; padding: 12px 24px 32px; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; padding: 12px 16px 24px; } header { padding: 16px 16px 4px; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); }
+  .stack > * + * { margin-top: 14px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+  textarea { width: 100%; min-height: 96px; resize: vertical; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: 16px/1.4 inherit; }
+  textarea:focus, select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 4px 10px; cursor: pointer; font: inherit; font-size: 13px; }
+  .chip:hover { border-color: var(--accent); }
+  .chip.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .sample-group { margin-bottom: 8px; }
+  .sample-group .label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px; padding: 10px 20px; font: 600 15px inherit; cursor: pointer; }
+  button.primary:disabled { opacity: .6; cursor: progress; }
+  button.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 6px 10px; cursor: pointer; font: inherit; }
+  button.ghost:hover { border-color: var(--accent); }
+  .kbd { font-size: 12px; color: var(--muted); }
+  label.inline { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+  input[type=number] { width: 80px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
+  .desc { color: var(--muted); font-size: 13px; min-height: 1.4em; }
+  .status { font-size: 13px; color: var(--muted); }
+  .status.err { color: #c0392b; }
+  audio { width: 100%; }
+  .groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 18px; }
+  fieldset { border: 0; padding: 0; margin: 0; }
+  fieldset legend { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; padding: 0; margin-bottom: 6px; }
+  .param { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; margin-bottom: 8px; }
+  .param .name { font-size: 13px; }
+  .param.changed .name { color: var(--changed); font-weight: 600; }
+  .param .val { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); }
+  .param input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+  .param select { grid-column: 2; padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
+  .param .hint { grid-column: 1 / -1; font-size: 11px; color: var(--muted); margin-top: -2px; }
+  .history { list-style: none; padding: 0; margin: 0; }
+  .history li { border-top: 1px solid var(--line); padding: 10px 0; }
+  .history li:first-child { border-top: 0; padding-top: 0; }
+  .history .meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 4px; flex-wrap: wrap; }
+  .history .meta b { color: var(--ink); font-weight: 600; }
+  .history .actions { display: flex; gap: 6px; margin-top: 4px; }
+  .history .actions a, .history .actions button { font-size: 12px; }
+  a { color: var(--accent); }
+  pre { margin: 0; padding: 10px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+  .empty { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Nebi Voice Lab</h1>
+  <span class="sub">small-robot TTS on tiny-voca · tweak, listen, compare</span>
+</header>
+<main>
+  <section class="stack">
+    <div class="panel stack">
+      <div>
+        <h2>Text</h2>
+        <textarea id="text" spellcheck="false">Hello? Ready!</textarea>
+      </div>
+      <div>
+        <h2>Samples</h2>
+        <div id="samples"></div>
+      </div>
+      <div>
+        <h2>Emotion</h2>
+        <div class="chips" id="emotions"></div>
+      </div>
+      <div class="row">
+        <button class="primary" id="speak">Speak</button>
+        <button class="ghost" id="babble" title="Pet gibberish in the chosen emotion (ignores the text)">Babble</button>
+        <span class="kbd">⌘/Ctrl + Enter</span>
+        <label class="inline">seed <input type="number" id="seed" value="0" min="0"></label>
+        <button class="ghost" id="dice" title="New random seed (different melody / gaps / servo)">🎲</button>
+        <label class="inline"><input type="checkbox" id="auto"> re-speak on change</label>
+      </div>
+      <div class="status" id="status">Loading…</div>
+      <audio id="player" controls></audio>
+    </div>
+    <div class="panel">
+      <h2>Takes</h2>
+      <ul class="history" id="history"><li class="empty">Your renders appear here, newest first.</li></ul>
+    </div>
+    <div class="panel">
+      <div class="row" style="justify-content: space-between; margin-bottom: 8px;">
+        <h2 style="margin:0">Reproduce</h2>
+        <div class="row"><button class="ghost" data-copy="cli">Copy CLI</button><button class="ghost" data-copy="py">Copy Python</button></div>
+      </div>
+      <pre id="code"></pre>
+    </div>
+  </section>
+  <section class="stack">
+    <div class="panel">
+      <h2>Preset</h2>
+      <div class="chips" id="presets"></div>
+      <p class="desc" id="preset-desc"></p>
+      <div class="row"><button class="ghost" id="reset">Reset to preset</button><span class="kbd">changed values are highlighted</span></div>
+    </div>
+    <div class="panel">
+      <div class="groups" id="params"></div>
+    </div>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+let cfg = null, emotion = "neutral", preset = "robot", values = {}, busy = false, takeN = 0, autoTimer = null;
+
+function fmt(v, step) {
+  if (typeof v === "boolean") return v ? "on" : "off";
+  if (typeof v === "string") return v;
+  const d = String(step).includes(".") ? String(step).split(".")[1].length : 0;
+  return Number(v).toFixed(Math.min(d, 3));
+}
+
+function presetValues(name) { return structuredClone(cfg.presets[name].params); }
+
+function diff() {
+  const base = cfg.presets[preset].params, out = {};
+  for (const m of cfg.params) if (values[m.key] !== base[m.key]) out[m.key] = values[m.key];
+  return out;
+}
+
+function renderPresets() {
+  $("presets").innerHTML = "";
+  for (const name of Object.keys(cfg.presets)) {
+    const b = document.createElement("button");
+    b.className = "chip" + (name === preset ? " active" : "");
+    b.textContent = name;
+    b.onclick = () => { preset = name; values = presetValues(name); renderPresets(); renderParams(); changed(); };
+    $("presets").appendChild(b);
+  }
+  $("preset-desc").textContent = cfg.presets[preset].description || "";
+}
+
+function renderParams() {
+  const groups = {};
+  for (const m of cfg.params) (groups[m.group] ||= []).push(m);
+  const base = cfg.presets[preset].params;
+  $("params").innerHTML = "";
+  for (const [g, items] of Object.entries(groups)) {
+    const fs = document.createElement("fieldset");
+    fs.innerHTML = `<legend>${g}</legend>`;
+    for (const m of items) {
+      const row = document.createElement("div");
+      row.className = "param" + (values[m.key] !== base[m.key] ? " changed" : "");
+      const id = "p_" + m.key;
+      if (m.kind === "select") {
+        row.innerHTML = `<label class="name" for="${id}">${m.label}</label><select id="${id}">${m.options.map(o => `<option${o === values[m.key] ? " selected" : ""}>${o}</option>`).join("")}</select>`;
+        row.querySelector("select").onchange = (e) => { values[m.key] = e.target.value; refreshRow(row, m); changed(); };
+      } else if (m.kind === "toggle") {
+        row.innerHTML = `<label class="name" for="${id}">${m.label}</label><input type="checkbox" id="${id}"${values[m.key] ? " checked" : ""}>`;
+        row.querySelector("input").onchange = (e) => { values[m.key] = e.target.checked; refreshRow(row, m); changed(); };
+      } else {
+        row.innerHTML = `<label class="name" for="${id}">${m.label}</label><span class="val">${fmt(values[m.key], m.step)}</span>
+          <input type="range" id="${id}" min="${m.min}" max="${m.max}" step="${m.step}" value="${values[m.key]}">${m.hint ? `<span class="hint">${m.hint}</span>` : ""}`;
+        const r = row.querySelector("input");
+        r.oninput = () => { values[m.key] = Number(r.value); row.querySelector(".val").textContent = fmt(values[m.key], m.step); refreshRow(row, m); updateCode(); };
+        r.onchange = () => changed();
+        r.ondblclick = () => { values[m.key] = base[m.key]; r.value = base[m.key]; row.querySelector(".val").textContent = fmt(base[m.key], m.step); refreshRow(row, m); changed(); };
+        r.title = "double-click to reset";
+      }
+      fs.appendChild(row);
+    }
+    $("params").appendChild(fs);
+  }
+}
+
+function refreshRow(row, m) { row.classList.toggle("changed", values[m.key] !== cfg.presets[preset].params[m.key]); }
+
+function renderEmotions() {
+  $("emotions").innerHTML = "";
+  for (const name of cfg.emotions) {
+    const b = document.createElement("button");
+    b.className = "chip" + (name === emotion ? " active" : "");
+    b.textContent = name;
+    b.onclick = () => { emotion = name; renderEmotions(); changed(); };
+    $("emotions").appendChild(b);
+  }
+}
+
+function renderSamples() {
+  const box = $("samples");
+  for (const [g, lines] of Object.entries(cfg.samples)) {
+    const div = document.createElement("div");
+    div.className = "sample-group";
+    div.innerHTML = `<div class="label">${g}</div><div class="chips"></div>`;
+    for (const t of lines) {
+      const b = document.createElement("button");
+      b.className = "chip"; b.textContent = t.length > 38 ? t.slice(0, 36) + "…" : t; b.title = t;
+      b.onclick = () => { $("text").value = t; speak(); };
+      div.querySelector(".chips").appendChild(b);
+    }
+    box.appendChild(div);
+  }
+}
+
+const CLI_FLAGS = { base_voice: "--voice", pitch: "--pitch", formant: "--formant", pitch_range: "--range", speed: "--speed", delivery: "--delivery" };
+function codeFor(kind) {
+  const d = diff(), text = $("text").value.trim(), seed = Number($("seed").value) || 0;
+  if (kind === "cli") {
+    const parts = ["nebi-voice say", "-p " + preset];
+    const extra = [];
+    for (const [k, v] of Object.entries(d)) {
+      if (CLI_FLAGS[k]) parts.push(`${CLI_FLAGS[k]} ${v}`);
+      else if (k === "servo" && v === false) parts.push("--no-servo");
+      else extra.push(k);
+    }
+    if (seed) parts.push("--seed " + seed);
+    if (emotion !== "neutral") parts.push("--emotion " + emotion);
+    parts.push(JSON.stringify(text));
+    return parts.join(" ") + (extra.length ? `\n# not exposed as CLI flags (use Python): ${extra.join(", ")}` : "");
+  }
+  const kw = Object.entries(d).map(([k, v]) => k === "gap_min" || k === "gap_max" ? null : `${k}=${typeof v === "string" ? JSON.stringify(v) : typeof v === "boolean" ? (v ? "True" : "False") : v}`).filter(Boolean);
+  if ("gap_min" in d || "gap_max" in d) kw.push(`word_gap=(${values.gap_min}, ${values.gap_max})`);
+  const args = [JSON.stringify(preset), `seed=${seed}`, ...kw].join(", ");
+  const em = emotion !== "neutral" ? `, emotion=${JSON.stringify(emotion)}` : "";
+  return `from nebi_voice import RobotVoice\nv = RobotVoice(${args})\nv.save(${JSON.stringify(text)}, "out.wav"${em})`;
+}
+function updateCode() { $("code").textContent = codeFor("py") + "\n\n# CLI\n" + codeFor("cli"); }
+
+function changed() {
+  updateCode();
+  if ($("auto").checked) { clearTimeout(autoTimer); autoTimer = setTimeout(speak, 250); }
+}
+
+async function speak(mode = "auto") {
+  const text = $("text").value.trim();
+  if ((!text && mode !== "babble") || busy) return;
+  busy = true; $("speak").disabled = true;
+  $("status").className = "status"; $("status").textContent = "Rendering…";
+  const seed = Number($("seed").value) || 0, params = structuredClone(values), p = preset;
+  try {
+    const r = await fetch("/api/synth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, preset: p, params, seed, emotion, mode }) });
+    if (!r.ok) throw new Error((await r.json()).error || r.statusText);
+    const ms = r.headers.get("X-Render-Ms"), dur = r.headers.get("X-Duration-S");
+    const url = URL.createObjectURL(await r.blob());
+    $("player").src = url; $("player").play().catch(() => {});
+    const spoken = decodeURIComponent(r.headers.get("X-Spoken") || text), m = r.headers.get("X-Mode"), em = r.headers.get("X-Emotion");
+    $("status").textContent = `${dur}s of audio rendered in ${ms} ms · ${em} · ${m}${m === "babble" ? ` “${spoken}”` : ""}`;
+    addTake({ url, text: spoken, preset: p, params, seed, dur, emotion: em, mode: m, changed: Object.keys(diff()).length });
+  } catch (e) {
+    $("status").className = "status err"; $("status").textContent = "Error: " + e.message;
+  } finally { busy = false; $("speak").disabled = false; }
+}
+
+function addTake(t) {
+  const list = $("history");
+  if (list.querySelector(".empty")) list.innerHTML = "";
+  takeN += 1;
+  const li = document.createElement("li");
+  const safe = t.text.replace(/[^\w]+/g, "-").slice(0, 30).replace(/^-|-$/g, "") || "take";
+  li.innerHTML = `<div class="meta"><span><b>#${takeN} ${t.preset}</b> · ${t.emotion}${t.mode === "babble" ? " babble" : ""}${t.changed ? ` · ${t.changed} tweak${t.changed > 1 ? "s" : ""}` : ""} · seed ${t.seed} · ${t.dur}s</span><span class="txt"></span></div>
+    <audio controls preload="auto" src="${t.url}"></audio>
+    <div class="actions"><a class="ghost" download="nebi-${t.preset}-${safe}.wav" href="${t.url}">Download</a><button class="ghost">Load settings</button></div>`;
+  li.querySelector(".txt").textContent = `“${t.text.length > 48 ? t.text.slice(0, 46) + "…" : t.text}”`;
+  li.querySelector("button").onclick = () => {
+    preset = t.preset; values = structuredClone(t.params); $("seed").value = t.seed; emotion = t.emotion || "neutral";
+    if (t.mode !== "babble") $("text").value = t.text;
+    renderPresets(); renderParams(); renderEmotions(); updateCode();
+  };
+  list.prepend(li);
+  while (list.children.length > 25) list.lastChild.remove();
+}
+
+document.querySelectorAll("[data-copy]").forEach((b) => b.onclick = async () => {
+  await navigator.clipboard.writeText(codeFor(b.dataset.copy));
+  const old = b.textContent; b.textContent = "Copied"; setTimeout(() => (b.textContent = old), 1000);
+});
+$("speak").onclick = () => speak();
+$("babble").onclick = () => speak("babble");
+$("dice").onclick = () => { $("seed").value = Math.floor(Math.random() * 10000); changed(); };
+$("seed").onchange = changed;
+$("reset").onclick = () => { values = presetValues(preset); renderParams(); changed(); };
+$("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); speak(); } });
+$("text").addEventListener("input", updateCode);
+
+(async () => {
+  try {
+    cfg = await (await fetch("/api/config")).json();
+    values = presetValues(preset);
+    renderPresets(); renderParams(); renderEmotions(); renderSamples(); updateCode();
+    $("status").textContent = "Ready. Pick a sample or type something.";
+  } catch (e) {
+    $("status").className = "status err"; $("status").textContent = "Cannot reach the nebi-voice server.";
+  }
+})();
+</script>
+</body>
+</html>

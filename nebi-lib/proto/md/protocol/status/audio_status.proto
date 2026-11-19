@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message AudioStatusData {
+  optional uint32 record_enabled = 1;
+  optional uint32 record_executor_version = 2;
+}
+
+message AudioStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.AudioStatusData data = 2;
+}

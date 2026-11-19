@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.data;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/tracking_target_info.proto";
+
+message TrackingTargetDataData {
+  optional uint32 target_count = 1;
+  repeated .md.protocol.common.TrackingTargetInfo targets = 2;
+}
+
+message TrackingTargetData {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.data.TrackingTargetDataData data = 2;
+}

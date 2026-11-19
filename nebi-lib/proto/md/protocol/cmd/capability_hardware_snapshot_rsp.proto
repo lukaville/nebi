@@ -1,0 +1,16 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/camera_record_profiles_capability.proto";
+import "md/protocol/common/camera_manual_iso_capability.proto";
+
+message CapabilityHardwareSnapshotRspData {
+  optional uint32 ret_code = 1;
+  .md.protocol.common.CameraRecordProfilesCapability camera_record_profiles = 2;
+  .md.protocol.common.CameraManualIsoCapability camera_manual_iso = 3;
+}
+
+message CapabilityHardwareSnapshotRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CapabilityHardwareSnapshotRspData data = 2;
+}

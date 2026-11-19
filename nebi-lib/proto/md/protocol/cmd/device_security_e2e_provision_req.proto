@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message DeviceSecurityE2eProvisionReqData {
+  bytes request_id = 1;
+  bytes challenge = 2;
+}
+
+message DeviceSecurityE2eProvisionReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.DeviceSecurityE2eProvisionReqData data = 2;
+}

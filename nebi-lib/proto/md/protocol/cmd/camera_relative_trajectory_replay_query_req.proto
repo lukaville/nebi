@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CameraRelativeTrajectoryReplayQueryReqData {
+  optional uint32 version = 1;
+  optional uint32 trajectory_id_len = 2;
+  bytes trajectory_id = 3;
+  optional uint32 client_request_id = 4;
+}
+
+message CameraRelativeTrajectoryReplayQueryReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CameraRelativeTrajectoryReplayQueryReqData data = 2;
+}

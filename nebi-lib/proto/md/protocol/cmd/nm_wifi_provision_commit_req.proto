@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message NmWifiProvisionCommitReqData {
+  optional uint32 trigger_source = 1;
+  bytes resv = 2;
+  bytes uuid = 3;
+}
+
+message NmWifiProvisionCommitReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.NmWifiProvisionCommitReqData data = 2;
+}

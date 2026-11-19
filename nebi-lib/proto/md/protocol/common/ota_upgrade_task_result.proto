@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.common;
+
+message OtaUpgradeTaskResult {
+  optional uint32 protocol_version = 1;
+  string upgrade_id = 2;
+  string device_id = 3;
+  string state = 4;
+  string upload_grant_token = 5;
+  optional uint64 offset = 6;
+  optional uint64 revision = 7;
+  string error_code = 8;
+}

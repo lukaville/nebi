@@ -1,0 +1,21 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/ota_upgrade_task_result.proto";
+import "md/protocol/common/ota_upgrade_task_context.proto";
+import "md/protocol/common/ota_upgrade_task_observation.proto";
+
+message OtaUpgradeControlRspData {
+  optional uint32 ret_code = 1;
+  optional uint32 current_upgrade_stage = 2;
+  bytes reserved = 3;
+  .md.protocol.common.OtaUpgradeTaskResult task = 4;
+  .md.protocol.common.OtaUpgradeTaskContext task_context = 5;
+  optional uint32 task_legacy = 6;
+  .md.protocol.common.OtaUpgradeTaskObservation task_observation = 7;
+}
+
+message OtaUpgradeControlRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.OtaUpgradeControlRspData data = 2;
+}

@@ -1,0 +1,16 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message MediaCatalogChangedData {
+  optional uint64 revision = 1;
+  optional uint32 storage_kind = 2;
+  optional uint32 change_reason = 3;
+  optional uint32 reserved = 4;
+  optional uint64 mount_generation = 5;
+}
+
+message MediaCatalogChanged {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.MediaCatalogChangedData data = 2;
+}

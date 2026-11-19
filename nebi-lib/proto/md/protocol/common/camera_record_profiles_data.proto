@@ -1,0 +1,7 @@
+syntax = "proto3";
+package md.protocol.common;
+import "md/protocol/common/camera_record_profile.proto";
+
+message CameraRecordProfilesData {
+  repeated .md.protocol.common.CameraRecordProfile profiles = 2;
+}

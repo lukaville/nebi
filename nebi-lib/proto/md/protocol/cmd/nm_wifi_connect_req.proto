@@ -1,0 +1,19 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message NmWifiConnectReqData {
+  optional uint32 ssid_len = 1;
+  bytes ssid = 2;
+  optional uint32 psk_len = 3;
+  bytes psk = 4;
+  optional uint32 security = 5;
+  optional uint32 timeout_sec = 6;
+  bytes uuid = 7;
+  bytes resv = 8;
+}
+
+message NmWifiConnectReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.NmWifiConnectReqData data = 2;
+}

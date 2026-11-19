@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message ParameterUpdateReqData {
+  optional uint32 mode_type = 1;
+  optional uint32 param_id = 2;
+  optional float param_value = 3;
+  bytes reserved = 4;
+}
+
+message ParameterUpdateReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.ParameterUpdateReqData data = 2;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message MicScanReqData {
+  optional uint32 action = 1;
+  optional uint32 duration_s = 2;
+}
+
+message MicScanReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.MicScanReqData data = 2;
+}

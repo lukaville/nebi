@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message SpeakerPlayCmdData {
+  optional uint32 sound_effect_id = 1;
+}
+
+message SpeakerPlayCmd {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.SpeakerPlayCmdData data = 2;
+}

@@ -1,0 +1,16 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/game_menu_configuration.proto";
+
+message GameMenuGetRspData {
+  optional uint32 ret_code = 1;
+  .md.protocol.common.GameMenuConfiguration configuration = 2;
+  bytes effective_slots = 3;
+  optional uint32 temporary_fallback = 4;
+}
+
+message GameMenuGetRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.GameMenuGetRspData data = 2;
+}

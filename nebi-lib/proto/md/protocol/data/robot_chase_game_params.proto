@@ -1,0 +1,16 @@
+syntax = "proto3";
+package md.protocol.data;
+import "md/protocol/common/wire_header.proto";
+
+message RobotChaseGameParamsData {
+  optional uint32 ice_break_distance = 1;
+  optional uint32 chase_distance = 2;
+  optional uint32 speed_setting = 3;
+  optional uint32 turn_time_ms = 4;
+  optional uint32 turn_transition_ms = 5;
+}
+
+message RobotChaseGameParams {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.data.RobotChaseGameParamsData data = 2;
+}

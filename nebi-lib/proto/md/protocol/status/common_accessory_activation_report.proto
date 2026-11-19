@@ -1,0 +1,16 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message CommonAccessoryActivationReportData {
+  optional uint64 act_time_ms = 1;
+  optional uint32 seq = 2;
+  optional uint32 acc_type = 3;
+  optional uint32 sn_len = 4;
+  bytes sn = 5;
+}
+
+message CommonAccessoryActivationReport {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.CommonAccessoryActivationReportData data = 2;
+}

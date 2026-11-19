@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message DeviceSecurityLocalTlsIdentityRspData {
+  optional uint32 ret_code = 1;
+  bytes device_sn = 2;
+  optional uint32 chain_len = 3;
+  bytes chain_pem = 4;
+}
+
+message DeviceSecurityLocalTlsIdentityRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.DeviceSecurityLocalTlsIdentityRspData data = 2;
+}

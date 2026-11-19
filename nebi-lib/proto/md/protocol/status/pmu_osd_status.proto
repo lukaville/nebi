@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message PmuOsdStatusData {
+  optional uint32 soc = 1;
+  optional uint32 power_bits = 2;
+  optional uint32 abnormal_flags = 3;
+}
+
+message PmuOsdStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.PmuOsdStatusData data = 2;
+}

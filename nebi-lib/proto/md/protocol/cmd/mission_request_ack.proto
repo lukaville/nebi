@@ -1,0 +1,18 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/pitch_handoff.proto";
+
+message MissionRequestAckData {
+  optional uint32 result_code = 1;
+  optional uint32 current_mission_id = 2;
+  optional uint32 current_sub_mode = 3;
+  optional uint32 error_code_lo = 4;
+  optional uint32 error_code_hi = 5;
+  .md.protocol.common.PitchHandoff pitch_handoff = 6;
+}
+
+message MissionRequestAck {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.MissionRequestAckData data = 2;
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message VtSetModeRspData {
+  optional uint32 ret_code = 1;
+}
+
+message VtSetModeRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.VtSetModeRspData data = 2;
+}

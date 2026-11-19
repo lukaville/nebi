@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CommonGetModuleVersionReqData {
+  optional uint32 sender = 1;
+  optional uint32 receiver = 2;
+}
+
+message CommonGetModuleVersionReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CommonGetModuleVersionReqData data = 2;
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message MicSavedListReqData {
+  optional uint32 reserved0 = 1;
+}
+
+message MicSavedListReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.MicSavedListReqData data = 2;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CommonAccessoryDeactivateRspData {
+  optional uint64 cleared_act_time_ms = 1;
+  optional uint32 ret_code = 2;
+}
+
+message CommonAccessoryDeactivateRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CommonAccessoryDeactivateRspData data = 2;
+}

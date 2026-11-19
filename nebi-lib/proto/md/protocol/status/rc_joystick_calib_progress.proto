@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message RcJoystickCalibProgressData {
+  optional uint32 status = 1;
+  optional uint32 progress = 2;
+}
+
+message RcJoystickCalibProgress {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.RcJoystickCalibProgressData data = 2;
+}

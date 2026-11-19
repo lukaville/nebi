@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message TrackingParamQueryRspData {
+  optional uint32 param_id = 1;
+  optional uint32 ret_code = 2;
+  optional uint32 reserved = 3;
+  optional float param_value = 4;
+}
+
+message TrackingParamQueryRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.TrackingParamQueryRspData data = 2;
+}

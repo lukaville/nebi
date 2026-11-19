@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CommonGetParameterReqData {
+  optional uint32 category = 1;
+  optional uint32 parameter_id = 2;
+}
+
+message CommonGetParameterReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CommonGetParameterReqData data = 2;
+}

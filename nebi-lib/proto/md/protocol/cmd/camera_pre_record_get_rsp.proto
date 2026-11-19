@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CameraPreRecordGetRspData {
+  optional uint32 ret_code = 2;
+  optional uint32 enabled = 3;
+  optional uint32 duration_s = 4;
+}
+
+message CameraPreRecordGetRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CameraPreRecordGetRspData data = 2;
+}

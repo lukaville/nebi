@@ -1,0 +1,10 @@
+syntax = "proto3";
+package md.protocol.common;
+
+message ImageData {
+  optional uint64 type = 1;
+  repeated uint64 size = 2;
+  repeated uint64 phys_addr = 3;
+  optional uint32 width = 4;
+  optional uint32 height = 5;
+}

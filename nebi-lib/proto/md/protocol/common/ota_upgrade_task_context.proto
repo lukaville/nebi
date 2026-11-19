@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.common;
+
+message OtaUpgradeTaskContext {
+  optional uint32 protocol_version = 1;
+  string upgrade_id = 2;
+  string device_id = 3;
+  string sha256 = 5;
+  optional uint64 size = 6;
+  string version = 7;
+  string original_filename = 8;
+}

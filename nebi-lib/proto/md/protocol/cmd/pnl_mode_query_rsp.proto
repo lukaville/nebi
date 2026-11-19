@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message PnlModeQueryRspData {
+  optional uint32 result_code = 1;
+  optional uint32 current_pnl_mode = 2;
+  optional uint32 reserved1 = 3;
+  optional uint32 reserved2 = 4;
+}
+
+message PnlModeQueryRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.PnlModeQueryRspData data = 2;
+}

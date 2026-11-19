@@ -1,0 +1,24 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message GamePlayerInputData {
+  optional uint64 timestamp_ns = 1;
+  optional uint32 version = 2;
+  optional uint32 game_type = 3;
+  optional uint32 player_slot = 4;
+  optional uint32 source = 5;
+  optional uint32 flags = 6;
+  optional uint32 profile_id = 7;
+  optional uint32 session_id = 8;
+  optional uint32 seq = 9;
+  optional uint32 sample_period_us = 10;
+  repeated float acc_g = 11;
+  repeated float gyro_dps = 12;
+  repeated float attitude_deg = 13;
+}
+
+message GamePlayerInput {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.GamePlayerInputData data = 2;
+}

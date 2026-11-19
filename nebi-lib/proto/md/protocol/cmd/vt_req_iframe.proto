@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message VtReqIframeData {
+  optional uint32 version = 1;
+  bytes resv = 2;
+}
+
+message VtReqIframe {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.VtReqIframeData data = 2;
+}

@@ -1,0 +1,27 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message GameStatusData {
+  optional uint64 timestamp_ns = 1;
+  optional uint32 game_type = 2;
+  optional uint32 state = 3;
+  optional uint32 sub_state = 4;
+  optional uint32 player_count = 5;
+  optional uint32 session_id = 6;
+  optional uint32 elapsed_ms = 7;
+  optional uint32 remaining_ms = 8;
+  optional float progress = 9;
+  optional uint32 winner = 10;
+  optional uint32 pause_reason = 11;
+  optional uint32 record_hint = 12;
+  optional uint32 error_code = 13;
+  bytes player_state = 14;
+  repeated float score = 15;
+  optional uint32 flags = 16;
+}
+
+message GameStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.GameStatusData data = 2;
+}

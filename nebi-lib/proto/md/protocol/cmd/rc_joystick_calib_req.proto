@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message RcJoystickCalibReqData {
+  optional uint32 action = 1;
+  optional uint32 receiver_type = 2;
+  optional uint32 receiver_index = 3;
+}
+
+message RcJoystickCalibReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.RcJoystickCalibReqData data = 2;
+}

@@ -1,0 +1,18 @@
+syntax = "proto3";
+package md.protocol.data;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/image_data.proto";
+import "md/protocol/common/camera_frame_attr.proto";
+
+message MainImageStreamData {
+  .md.protocol.common.ImageData data = 1;
+  .md.protocol.common.CameraFrameAttr attr = 2;
+  optional uint32 frame_type = 3;
+  optional uint32 camera_delay_us = 4;
+  optional uint64 msg_ts_ns = 5;
+}
+
+message MainImageStream {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.data.MainImageStreamData data = 2;
+}

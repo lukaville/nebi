@@ -1,0 +1,17 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message DeviceSecurityE2eProvisionRspData {
+  optional uint32 ret_code = 1;
+  bytes request_id = 2;
+  bytes device_public_key = 3;
+  bytes binding_salt = 4;
+  bytes pairing_credential = 5;
+  bytes cloud_shared_key = 6;
+}
+
+message DeviceSecurityE2eProvisionRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.DeviceSecurityE2eProvisionRspData data = 2;
+}

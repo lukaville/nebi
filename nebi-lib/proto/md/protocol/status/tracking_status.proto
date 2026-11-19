@@ -1,0 +1,17 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message TrackingStatusData {
+  optional uint32 status = 1;
+  optional uint32 tracking_id = 2;
+  optional uint32 target_type = 3;
+  optional uint32 horizontal_dis = 4;
+  optional uint32 horizontal_speed = 5;
+  optional uint32 uwb_follow_enabled = 6;
+}
+
+message TrackingStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.TrackingStatusData data = 2;
+}

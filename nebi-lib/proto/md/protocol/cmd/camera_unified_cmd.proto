@@ -1,0 +1,27 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CameraUnifiedCmdData {
+  optional uint32 cmd_type = 1;
+  optional uint32 trigger_flags = 2;
+  optional uint32 zoom_data = 3;
+  optional uint32 eis_enable = 4;
+  optional uint32 eis_level = 5;
+  optional uint32 horizon_lock = 6;
+  optional uint32 storage_type = 7;
+  optional uint32 raw_record_enable = 8;
+  optional uint32 record_profile_id = 9;
+  optional uint32 vt_config_index = 10;
+  optional uint32 pro_mode_enable = 11;
+  optional uint32 exp_time_index = 12;
+  optional uint32 iso_index = 13;
+  optional uint32 ev_index = 14;
+  optional uint32 wb_index = 15;
+  optional uint32 reserved = 16;
+}
+
+message CameraUnifiedCmd {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CameraUnifiedCmdData data = 2;
+}

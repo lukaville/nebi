@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message RcFunctionKeyModeData {
+  optional uint32 camera_btn_mode = 1;
+  optional uint32 game_btn_mode = 2;
+  optional uint32 update_flag = 3;
+  optional uint32 reserved = 4;
+}
+
+message RcFunctionKeyMode {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.RcFunctionKeyModeData data = 2;
+}

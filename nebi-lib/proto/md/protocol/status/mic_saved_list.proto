@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/mic_saved_device.proto";
+
+message MicSavedListData {
+  repeated .md.protocol.common.MicSavedDevice entries = 1;
+}
+
+message MicSavedList {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.MicSavedListData data = 2;
+}

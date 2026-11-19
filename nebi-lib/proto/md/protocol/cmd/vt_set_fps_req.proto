@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message VtSetFpsReqData {
+  optional uint32 fps = 1;
+}
+
+message VtSetFpsReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.VtSetFpsReqData data = 2;
+}

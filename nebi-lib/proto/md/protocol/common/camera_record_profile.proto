@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.common;
+import "md/protocol/common/fraction.proto";
+
+message CameraRecordProfile {
+  optional uint32 profile_id = 1;
+  bytes resolution_text = 2;
+  .md.protocol.common.Fraction fps = 3;
+  .md.protocol.common.Fraction aspect_ratio = 4;
+  .md.protocol.common.Fraction transmit_aspect_ratio = 5;
+  optional uint32 camera_mode = 6;
+  .md.protocol.common.Fraction playback_scale = 7;
+  optional uint32 pre_record_supported = 8;
+}

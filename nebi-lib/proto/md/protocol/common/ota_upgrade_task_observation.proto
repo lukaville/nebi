@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.common;
+
+message OtaUpgradeTaskObservation {
+  string runtime_id = 1;
+  optional uint32 active = 2;
+  optional uint32 progress_percent = 3;
+  string last_upgrade_id = 4;
+  string last_state = 5;
+  string last_error_code = 6;
+  optional uint64 last_revision = 7;
+  optional uint64 completed_at = 8;
+}

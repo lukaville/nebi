@@ -1,0 +1,16 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message VtStatusRspData {
+  optional sint32 ready = 1;
+  optional uint32 target_fps = 2;
+  optional uint32 target_kbps = 3;
+  optional sint32 restart = 4;
+  optional uint32 target_resolution = 5;
+}
+
+message VtStatusRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.VtStatusRspData data = 2;
+}

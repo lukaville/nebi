@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message TrackingCtrlCmdAckData {
+  optional uint32 result = 1;
+  optional uint32 selected_id = 2;
+  optional uint32 start_tracking = 3;
+  optional uint32 reserved = 4;
+}
+
+message TrackingCtrlCmdAck {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.TrackingCtrlCmdAckData data = 2;
+}

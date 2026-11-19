@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CommonGetPartitionSizeReqData {
+  bytes name = 1;
+  optional uint32 slot = 2;
+  bytes reserved = 3;
+}
+
+message CommonGetPartitionSizeReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CommonGetPartitionSizeReqData data = 2;
+}

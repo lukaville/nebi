@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message DeviceSecurityDeviceDeactivateReqData {
+  bytes request_id = 1;
+  optional uint64 deactivated_at = 2;
+  string deactivation_token = 3;
+}
+
+message DeviceSecurityDeviceDeactivateReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.DeviceSecurityDeviceDeactivateReqData data = 2;
+}

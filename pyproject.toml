@@ -1,0 +1,39 @@
+# Monorepo tool config only (not an installable project): each package has its own pyproject.toml.
+# ruff picks this up from any package directory; run mypy from this directory (`.venv/bin/mypy`).
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]   # the architecture test; each package runs its own suite from its directory
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+src = ["nebi-lib/src", "nebi-lib/tests", "nebi-cockpit/src", "nebi-cockpit/tests", "nebi-cli/src", "nebi-cli/tests", "nebi-voice/src", "nebi-voice/tests"]
+extend-exclude = ["nebi-lib/src/nebi/proto", "nebi-lib/proto", "**/build", "**/dist", "nebi-voice/src/nebi_voice/_vendor"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "ASYNC", "PL"]
+ignore = [
+    "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR2004",  # complexity/magic numbers: protocol code is full of them
+    "RUF001", "RUF002", "RUF003",                          # unicode in strings/comments (Chinese firmware names, symbols)
+    "E501",                                                # long lines handled by review, not enforced
+    "SIM105", "PLW0603", "PLC0415",                        # contextlib.suppress, globals, lazy imports of heavy optional deps
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["nebi", "nebi_cockpit", "nebi_cli", "nebi_voice"]
+
+[tool.ruff.lint.per-file-ignores]
+"*/tests/*" = ["PLR", "B", "S"]
+"tests/*" = ["PLR", "B", "S"]
+# nebi-voice DSP: signal-chain functions take many positional knobs; int(round(numpy float)) is deliberate
+"nebi-voice/src/nebi_voice/*" = ["PLR0917", "RUF046"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["nebi-lib/src/nebi", "nebi-cockpit/src/nebi_cockpit", "nebi-cli/src/nebi_cli", "nebi-voice/src/nebi_voice"]
+exclude = ["nebi-lib/src/nebi/proto/", "nebi-voice/src/nebi_voice/_vendor/"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+no_implicit_optional = true

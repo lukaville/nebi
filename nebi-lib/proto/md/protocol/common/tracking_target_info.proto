@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.common;
+
+message TrackingTargetInfo {
+  optional uint32 id = 1;
+  optional float center_pos_x = 2;
+  optional float center_pos_y = 3;
+  optional float width = 4;
+  optional float height = 5;
+  optional uint32 target_state = 6;
+  optional uint32 reserved_state_flags = 7;
+}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CommonAccessoryDeactivateReqData {
+  optional uint32 acc_type = 1;
+  optional uint32 sn_len = 2;
+  bytes sn = 3;
+}
+
+message CommonAccessoryDeactivateReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CommonAccessoryDeactivateReqData data = 2;
+}

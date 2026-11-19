@@ -1,0 +1,16 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CommonSetParameterReqData {
+  optional uint32 category = 1;
+  optional uint32 parameter_id = 2;
+  optional uint32 type = 3;
+  optional uint32 len = 4;
+  bytes value = 5;
+}
+
+message CommonSetParameterReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CommonSetParameterReqData data = 2;
+}

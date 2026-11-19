@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message VtSetResolutionReqData {
+  optional uint32 resolution = 1;
+}
+
+message VtSetResolutionReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.VtSetResolutionReqData data = 2;
+}

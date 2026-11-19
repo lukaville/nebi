@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CameraRecordReqData {
+  optional uint32 action = 1;
+  optional uint64 request_id = 2;
+}
+
+message CameraRecordReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CameraRecordReqData data = 2;
+}

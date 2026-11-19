@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message VtStatusReqData {
+  optional uint32 version = 1;
+  bytes resv = 2;
+}
+
+message VtStatusReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.VtStatusReqData data = 2;
+}

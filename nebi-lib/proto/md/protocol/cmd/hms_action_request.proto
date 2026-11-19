@@ -1,0 +1,30 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message HmsActionRequestData {
+  optional uint64 command_id = 1;
+  optional uint64 source_event_offset = 2;
+  optional uint32 source_fault_code = 3;
+  optional uint32 action_id = 4;
+  optional uint32 execution_timeout_ms = 5;
+  optional uint32 instance_id = 6;
+  optional uint32 operation = 7;
+  optional uint32 source_severity = 8;
+  optional uint64 source_daemon_instance_id = 9;
+  optional uint64 dispatcher_instance_id = 10;
+  optional uint32 durability = 11;
+  bytes delivery_store_id = 12;
+  bytes source_boot_id = 13;
+  optional uint64 source_monotonic_ns = 14;
+  optional uint64 occurred_at_ms = 15;
+  optional uint32 context_flags = 16;
+  optional uint32 context_version = 17;
+  optional uint32 context_size = 18;
+  bytes context = 19;
+}
+
+message HmsActionRequest {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.HmsActionRequestData data = 2;
+}

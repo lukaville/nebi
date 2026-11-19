@@ -1,0 +1,18 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message GameControlReqData {
+  optional uint64 timestamp_ns = 1;
+  optional uint32 version = 2;
+  optional uint32 game_type = 3;
+  optional uint32 action = 4;
+  optional uint32 flags = 5;
+  optional uint32 session_id = 6;
+  optional uint32 param_hash = 7;
+}
+
+message GameControlReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.GameControlReqData data = 2;
+}

@@ -1,0 +1,81 @@
+name: Publish to PyPI
+
+# Push a tag like `v0.2.0` (or run manually) to build all packages and upload the ones whose version is not on
+# PyPI yet. Uses PyPI trusted publishing (OIDC): no API tokens are stored in GitHub. Each package publishes from its
+# own GitHub environment (`pypi-<package>`), because PyPI requires a distinct trusted-publisher configuration per
+# project. One-time setup: CONTRIBUTING.md ("Releasing").
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: "Where to upload"
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Build sdists and wheels
+        run: |
+          python -m pip install build twine
+          scripts/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: nebi-lib
+            dist: nebi_lib
+          - package: nebi-cockpit
+            dist: nebi_cockpit
+          - package: nebi-cli
+            dist: nebi_cli
+          - package: nebi-voice
+            dist: nebi_voice
+    environment:
+      name: ${{ (github.event_name == 'workflow_dispatch' && inputs.repository == 'testpypi') && 'testpypi' || 'pypi' }}-${{ matrix.package }}
+      url: ${{ (github.event_name == 'workflow_dispatch' && inputs.repository == 'testpypi') && 'https://test.pypi.org' || 'https://pypi.org' }}/p/${{ matrix.package }}
+    permissions:
+      id-token: write          # trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Select this package's files
+        run: |
+          mkdir upload
+          cp dist/${{ matrix.dist }}-* upload/
+          ls -l upload
+      - name: Upload to TestPyPI
+        if: github.event_name == 'workflow_dispatch' && inputs.repository == 'testpypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: upload/
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+      - name: Upload to PyPI
+        if: github.event_name == 'push' || inputs.repository == 'pypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: upload/
+          skip-existing: true  # packages are versioned independently: only new versions are uploaded

@@ -1,0 +1,11 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message DeviceSecurityDeviceActivationStateReqData {
+}
+
+message DeviceSecurityDeviceActivationStateReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.DeviceSecurityDeviceActivationStateReqData data = 2;
+}

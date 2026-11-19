@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message NmWifiScanReqData {
+  optional uint32 force_scan = 1;
+  optional uint32 max_count = 2;
+  bytes resv = 3;
+}
+
+message NmWifiScanReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.NmWifiScanReqData data = 2;
+}

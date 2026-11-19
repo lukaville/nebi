@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message MissionRequestData {
+  optional uint32 version = 1;
+  optional uint32 mission_id = 2;
+  optional uint32 sub_mode = 3;
+  bytes mode_params = 4;
+}
+
+message MissionRequest {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.MissionRequestData data = 2;
+}

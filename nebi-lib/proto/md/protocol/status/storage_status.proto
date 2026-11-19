@@ -1,0 +1,24 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message StorageStatusData {
+  optional uint32 internal_used_space = 1;
+  optional uint32 internal_total_space = 2;
+  optional uint32 sd_used_space = 3;
+  optional uint32 sd_total_space = 4;
+  optional uint32 storage_type = 5;
+  optional uint32 sd_status = 6;
+  optional uint32 sd_transfer_speed = 7;
+  optional uint32 sd_fs_type = 8;
+  optional uint32 internal_threshold_alert = 9;
+  optional uint32 sd_threshold_alert = 10;
+  optional uint32 internal_exported_to_host = 11;
+  optional uint32 msd_active = 12;
+  optional uint32 recording_min_free_space_mb = 13;
+}
+
+message StorageStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.StorageStatusData data = 2;
+}

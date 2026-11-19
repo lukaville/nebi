@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message NmWifiSwitchToStationResultReqData {
+  bytes resv = 1;
+}
+
+message NmWifiSwitchToStationResultReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.NmWifiSwitchToStationResultReqData data = 2;
+}

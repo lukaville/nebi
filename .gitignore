@@ -1,0 +1,32 @@
+.venv/
+__pycache__/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+
+# build / tool output
+dist/
+build/
+*.log
+.coverage
+htmlcov/
+.idea/
+.vscode/
+.env
+
+# never commit robot data, captures, vendor binaries or personal config/secrets
+*.pcap*
+captures/
+*.apk
+*.apks
+*.img
+media_token
+identity.json
+wifi.json
+*_latch.json
+
+# nebi-voice: downloaded tiny-voca model and rendered samples (the model is fetched at runtime, never committed)
+nebi-voice/models/
+nebi-voice/samples/

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message DeviceSecurityDeviceAttestReqData {
+  bytes challenge = 1;
+}
+
+message DeviceSecurityDeviceAttestReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.DeviceSecurityDeviceAttestReqData data = 2;
+}

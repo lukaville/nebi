@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message LedEffectCtrlData {
+  optional uint32 action = 1;
+  optional uint32 play_count = 2;
+  bytes reserved = 3;
+  repeated sint32 csv_path = 4;
+}
+
+message LedEffectCtrl {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.LedEffectCtrlData data = 2;
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message GameMenuGetReqData {
+  optional uint32 version = 1;
+}
+
+message GameMenuGetReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.GameMenuGetReqData data = 2;
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message RcVibrationSetRspData {
+  optional uint32 level = 1;
+}
+
+message RcVibrationSetRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.RcVibrationSetRspData data = 2;
+}

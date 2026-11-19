@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message MdGatewayMqttEndpointUpdateReqData {
+  optional uint32 host_len = 1;
+  bytes host = 2;
+  bytes resv = 3;
+}
+
+message MdGatewayMqttEndpointUpdateReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.MdGatewayMqttEndpointUpdateReqData data = 2;
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message VtSetBitrateReqData {
+  optional uint32 bitrate = 1;
+}
+
+message VtSetBitrateReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.VtSetBitrateReqData data = 2;
+}

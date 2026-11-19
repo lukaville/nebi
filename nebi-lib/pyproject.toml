@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=77"]   # PEP 639 license expression + license-files
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nebi-lib"
+version = "0.2.0"
+description = "Unofficial async Python SDK and simulator compatible with the Beni robot (LZ110/LZ100). Not affiliated with the manufacturer; moves the robot, use with supervision."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]   # copies of the monorepo root files (PEP 639 forbids ../ paths)
+authors = [{ name = "The nebi authors" }]
+keywords = ["robot", "robotics", "beni", "lz110", "lz100", "asyncio", "sdk", "simulator", "zenoh", "ble", "h265"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Framework :: AsyncIO",
+    "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+    "Topic :: System :: Hardware",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Multimedia :: Video",
+    "Typing :: Typed",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "protobuf>=5.29.3",        # the generated *_pb2.py modules require protobuf runtime >= 5.29.3
+    "httpx>=0.27.0",
+    "eclipse-zenoh>=1.0,<2",   # wire-compatible with the robot's Zenoh 1.x
+    "av>=13.0.0",
+    "pillow>=10.0.0",
+    "bleak>=0.22.0",
+    "cryptography>=42.0.0",
+    "numpy>=1.24",
+]
+
+# TODO(publish): add [project.urls] (Homepage / Source / Issues / Changelog) once the public repository exists.
+# [project.urls]
+# Source = "https://..."
+
+[project.optional-dependencies]
+# `nebi.sim` (MockNebiRobot): its mock robot HTTP daemons run on FastAPI/uvicorn.
+sim = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "python-multipart>=0.0.9",
+]
+dev = [
+    "nebi-lib[sim]",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.6",
+    "mypy>=1.10",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"nebi" = ["py.typed"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+# ruff + mypy: shared monorepo config in ../pyproject.toml

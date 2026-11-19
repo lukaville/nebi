@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/camera_relative_trajectory_replay_descriptor.proto";
+
+message CameraRelativeTrajectoryReplayCatalogData {
+  optional uint32 trajectory_count = 1;
+  repeated .md.protocol.common.CameraRelativeTrajectoryReplayDescriptor descriptors = 10;
+  optional uint32 catalog_format_version = 11;
+}
+
+message CameraRelativeTrajectoryReplayCatalog {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.CameraRelativeTrajectoryReplayCatalogData data = 2;
+}

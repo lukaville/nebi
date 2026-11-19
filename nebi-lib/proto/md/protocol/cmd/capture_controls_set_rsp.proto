@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CaptureControlsSetRspData {
+  optional uint32 result = 1;
+  optional uint32 applied_mask = 2;
+  optional uint32 failed_mask = 3;
+}
+
+message CaptureControlsSetRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CaptureControlsSetRspData data = 2;
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CommonPingReqData {
+  bytes ping_data = 1;
+}
+
+message CommonPingReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CommonPingReqData data = 2;
+}

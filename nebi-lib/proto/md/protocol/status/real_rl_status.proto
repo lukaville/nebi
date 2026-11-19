@@ -1,0 +1,41 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message RealRlStatusData {
+  optional uint32 version = 1;
+  optional uint32 supported = 2;
+  optional uint32 reserved0 = 3;
+  optional uint32 control_source = 4;
+  optional uint32 requested_inference_mode = 5;
+  optional uint32 active_inference_mode = 6;
+  optional uint32 rollout_recording_requested = 7;
+  optional uint32 rollout_recording_active = 8;
+  optional uint32 runtime_state = 9;
+  optional uint32 model_ready = 10;
+  optional uint32 collector_ready = 11;
+  optional uint32 collector_fault = 12;
+  optional uint32 session_active = 13;
+  optional uint32 episode_active = 14;
+  optional uint32 last_request_seq_num = 15;
+  optional uint32 recording_remaining_ms = 16;
+  optional uint64 session_id = 17;
+  optional uint64 episode_id = 18;
+  optional uint64 written_record_count = 19;
+  optional uint32 pending_record_count = 20;
+  optional uint64 dropped_record_count = 21;
+  optional uint32 completed_fragment_count = 22;
+  optional uint64 last_record_timestamp_ns = 23;
+  optional uint64 timestamp_ns = 24;
+  optional uint32 inference_active = 25;
+  optional uint64 last_client_session_id = 26;
+  optional uint32 status_stale = 27;
+  optional uint32 runtime_status_age_ms = 28;
+  optional float requested_exploration_scale = 31;
+  optional float active_exploration_scale = 32;
+}
+
+message RealRlStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.RealRlStatusData data = 2;
+}

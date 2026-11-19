@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message WifiStatusData {
+  optional uint32 tx_bitrate = 1;
+  optional uint32 rx_bitrate = 2;
+  optional sint32 rssi = 3;
+  optional uint32 connection_status = 4;
+}
+
+message WifiStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.WifiStatusData data = 2;
+}

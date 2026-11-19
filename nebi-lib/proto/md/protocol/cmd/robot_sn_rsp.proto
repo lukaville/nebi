@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message RobotSnRspData {
+  optional uint32 sn_type = 1;
+  optional uint32 lens = 2;
+  bytes sn = 3;
+}
+
+message RobotSnRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.RobotSnRspData data = 2;
+}

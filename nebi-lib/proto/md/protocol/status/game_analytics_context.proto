@@ -1,0 +1,22 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message GameAnalyticsContextData {
+  optional uint64 timestamp_ns = 1;
+  optional uint64 since_boot_ms = 2;
+  optional uint64 mode_session_id = 3;
+  optional uint64 task_id = 4;
+  optional uint32 game_session_id = 5;
+  optional uint32 round_index = 6;
+  optional uint32 game_id_code = 7;
+  optional uint32 state = 8;
+  optional uint32 input_source = 9;
+  optional uint32 valid = 10;
+  bytes boot_session_id = 11;
+}
+
+message GameAnalyticsContext {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.GameAnalyticsContextData data = 2;
+}

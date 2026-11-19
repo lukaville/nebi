@@ -1,0 +1,8 @@
+syntax = "proto3";
+package md.protocol.common;
+import "md/protocol/common/camera_record_profiles_data.proto";
+
+message CameraRecordProfilesCapability {
+  optional uint32 version = 1;
+  .md.protocol.common.CameraRecordProfilesData data = 2;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.common;
+
+message MicSavedDevice {
+  bytes mac = 1;
+  bytes name = 2;
+  optional uint32 state = 3;
+  optional uint32 battery_valid = 4;
+  optional uint32 battery_pct = 5;
+  optional uint32 last_success_seq = 6;
+  optional uint64 last_success_ms = 7;
+  optional uint32 supported = 8;
+}

@@ -1,0 +1,7 @@
+syntax = "proto3";
+package md.protocol.common;
+
+message Fraction {
+  optional uint32 numerator = 1;
+  optional uint32 denominator = 2;
+}

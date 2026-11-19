@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message MicForgetReqData {
+  bytes macs = 1;
+}
+
+message MicForgetReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.MicForgetReqData data = 2;
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message RobotStatusData {
+  optional uint32 robot_state = 1;
+  optional sint32 velocity = 2;
+  optional float trip_odom_dis = 3;
+  optional uint32 obstacle_dis = 4;
+  optional sint32 pitch_angle = 5;
+  optional sint32 gimbal_angle = 6;
+  optional sint32 roll_angle = 7;
+  optional uint32 height = 8;
+  optional uint32 sport_mode = 9;
+  optional uint32 abnormal_flags = 10;
+  optional float session_odom_dis = 11;
+}
+
+message RobotStatus {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.RobotStatusData data = 2;
+}

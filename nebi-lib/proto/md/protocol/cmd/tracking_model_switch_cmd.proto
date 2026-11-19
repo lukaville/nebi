@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message TrackingModelSwitchCmdData {
+  optional uint32 target_type = 1;
+  optional uint32 reserved_0 = 2;
+  optional uint32 reserved_1 = 3;
+  optional uint32 reserved_2 = 4;
+}
+
+message TrackingModelSwitchCmd {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.TrackingModelSwitchCmdData data = 2;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+
+message RcJoystickRawData {
+  optional uint32 x = 1;
+  optional uint32 y = 2;
+}
+
+message RcJoystickRaw {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.RcJoystickRawData data = 2;
+}

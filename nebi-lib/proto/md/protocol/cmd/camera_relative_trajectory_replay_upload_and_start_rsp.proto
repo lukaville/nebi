@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CameraRelativeTrajectoryReplayUploadAndStartRspData {
+  optional uint32 client_request_id = 1;
+  optional uint32 ret_code = 2;
+  optional uint32 replay_session_id = 3;
+}
+
+message CameraRelativeTrajectoryReplayUploadAndStartRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CameraRelativeTrajectoryReplayUploadAndStartRspData data = 2;
+}

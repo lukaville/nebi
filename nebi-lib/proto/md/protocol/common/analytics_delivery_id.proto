@@ -1,0 +1,6 @@
+syntax = "proto3";
+package md.protocol.common;
+
+message AnalyticsDeliveryId {
+  bytes delivery_id = 1;
+}

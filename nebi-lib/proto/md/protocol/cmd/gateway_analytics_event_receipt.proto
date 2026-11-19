@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/analytics_delivery_id.proto";
+
+message GatewayAnalyticsEventReceiptData {
+  optional uint32 accepted_count = 1;
+  repeated .md.protocol.common.AnalyticsDeliveryId accepted_delivery_ids = 2;
+}
+
+message GatewayAnalyticsEventReceipt {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.GatewayAnalyticsEventReceiptData data = 2;
+}

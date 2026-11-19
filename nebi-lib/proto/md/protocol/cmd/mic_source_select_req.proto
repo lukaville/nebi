@@ -1,0 +1,13 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message MicSourceSelectReqData {
+  optional uint32 kind = 1;
+  bytes mac = 2;
+}
+
+message MicSourceSelectReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.MicSourceSelectReqData data = 2;
+}

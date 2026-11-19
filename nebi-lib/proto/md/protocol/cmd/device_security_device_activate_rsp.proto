@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message DeviceSecurityDeviceActivateRspData {
+  optional uint32 ret_code = 1;
+  bytes request_id = 2;
+  optional uint32 state = 3;
+  optional uint64 state_changed_at = 4;
+}
+
+message DeviceSecurityDeviceActivateRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.DeviceSecurityDeviceActivateRspData data = 2;
+}

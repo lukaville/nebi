@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message PnlModeQueryReqData {
+  optional uint32 reserved1 = 1;
+  optional uint32 reserved2 = 2;
+  optional uint32 reserved3 = 3;
+  optional uint32 reserved4 = 4;
+}
+
+message PnlModeQueryReq {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.PnlModeQueryReqData data = 2;
+}

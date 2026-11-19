@@ -1,0 +1,21 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/nm_wifi_ap_info.proto";
+
+message NmWifiScanRspData {
+  optional uint32 result = 1;
+  optional uint32 ap_count = 2;
+  optional uint32 total_found = 3;
+  bytes resv = 4;
+  repeated .md.protocol.common.NmWifiApInfo aps = 5;
+  optional uint32 recent_ssid_len = 6;
+  bytes recent_ssid = 7;
+  optional uint32 recent_psk_len = 8;
+  bytes recent_psk = 9;
+}
+
+message NmWifiScanRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.NmWifiScanRspData data = 2;
+}

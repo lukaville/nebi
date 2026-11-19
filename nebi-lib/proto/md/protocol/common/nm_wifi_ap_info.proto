@@ -1,0 +1,12 @@
+syntax = "proto3";
+package md.protocol.common;
+
+message NmWifiApInfo {
+  optional uint32 ssid_len = 1;
+  bytes ssid = 2;
+  bytes bssid = 3;
+  optional uint32 channel = 4;
+  optional sint32 rssi = 5;
+  optional uint32 security = 6;
+  bytes resv = 7;
+}

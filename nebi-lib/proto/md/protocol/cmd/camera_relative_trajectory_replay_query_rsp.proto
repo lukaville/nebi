@@ -1,0 +1,19 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message CameraRelativeTrajectoryReplayQueryRspData {
+  optional uint32 client_request_id = 1;
+  optional uint32 ret_code = 2;
+  optional uint32 trajectory_id_len = 3;
+  bytes trajectory_id = 4;
+  optional uint32 sample_count = 5;
+  repeated uint32 time_ms = 6;
+  repeated float bearing_offset_rad = 7;
+  repeated float distance_ratio_offset = 8;
+}
+
+message CameraRelativeTrajectoryReplayQueryRsp {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.CameraRelativeTrajectoryReplayQueryRspData data = 2;
+}

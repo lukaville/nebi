@@ -1,0 +1,14 @@
+syntax = "proto3";
+package md.protocol.status;
+import "md/protocol/common/wire_header.proto";
+import "md/protocol/common/mic_scan_device.proto";
+
+message MicScanResultData {
+  optional uint32 scanning = 1;
+  repeated .md.protocol.common.MicScanDevice entries = 2;
+}
+
+message MicScanResult {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.status.MicScanResultData data = 2;
+}

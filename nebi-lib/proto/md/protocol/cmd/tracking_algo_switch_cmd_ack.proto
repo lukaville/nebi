@@ -1,0 +1,15 @@
+syntax = "proto3";
+package md.protocol.cmd;
+import "md/protocol/common/wire_header.proto";
+
+message TrackingAlgoSwitchCmdAckData {
+  optional uint32 ret_code = 1;
+  optional uint32 current_model_version = 2;
+  optional uint32 reserved_0 = 3;
+  optional uint32 reserved_1 = 4;
+}
+
+message TrackingAlgoSwitchCmdAck {
+  .md.protocol.common.WireHeader header = 1;
+  .md.protocol.cmd.TrackingAlgoSwitchCmdAckData data = 2;
+}
