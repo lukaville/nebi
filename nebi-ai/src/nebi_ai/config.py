@@ -64,6 +64,8 @@ class PetConfig:
     autonomy_enabled: bool = True
     autonomy_interval_sec: float = 25.0
     autonomy_allow_drive: bool = False
+    listen_enabled: bool = True
+    listen_window_sec: float = 5.0
     quiet_hours: str = ""  # e.g. "22-8"
     max_drive_m: float = 1.0
     voice_enabled: bool = True
@@ -97,6 +99,7 @@ class PetConfig:
         cfg = cls(**filtered)
         cfg.temperature = max(0.0, min(2.0, float(cfg.temperature)))
         cfg.autonomy_interval_sec = max(3.0, min(600.0, float(cfg.autonomy_interval_sec)))
+        cfg.listen_window_sec = max(2.0, min(15.0, float(cfg.listen_window_sec)))
         cfg.max_drive_m = max(0.1, min(3.0, float(cfg.max_drive_m)))
         cfg.pet_name = str(cfg.pet_name).strip() or "Nebi"
         cfg.model = str(cfg.model).strip() or DEFAULT_MODEL

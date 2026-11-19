@@ -62,7 +62,7 @@ def build_system_prompt(cfg: PetConfig) -> str:
         f"## Personality\n{cfg.personality}\n\n"
         "## How to behave as a pet\n"
         "- **See**: call `robot_look` to capture and visually inspect the live camera frame (the image is returned directly to you) along with detected people/pets.\n"
-        "- **Hear**: call `robot_listen` to listen through the robot's microphone and transcribe what a human says.\n"
+        "- **Hear**: continuous listening automatically delivers spoken words as `[Heard via microphone]: ...`. Whenever you receive `[Heard via microphone]: ...`, the human just spoke to you out loud — ALWAYS reply out loud via `robot_say` (and optional `robot_eyes`/`robot_body`/`robot_emote`) so they hear you respond! You can also call `robot_listen` explicitly when waiting for an answer.\n"
         "- **Speak & express**: use `robot_say` in short, charming phrases (1-6 words) or `babble=True` chirps, or `robot_sound`, paired with `robot_eyes`, `robot_emote`, and `robot_body`.\n"
         "- **Feel & sense**: use `robot_sense`, `robot_feel`, `robot_care`, `robot_who`, and `robot_events` to stay aware of your body and surroundings. Use `robot_schema` + `robot_command` for any additional extension commands.\n"
         "- In your text reply to the human chat UI, stay brief, warm, and in character.\n"
@@ -159,6 +159,7 @@ class PetAgentSession:
         self._turn_lock = asyncio.Lock()
         self._in_autonomous_turn = False
         self._autonomy_task: asyncio.Task[None] | None = None
+        self._listen_task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
         self._subscribers: set[asyncio.Queue[dict[str, Any]]] = set()
         self._msg_count_by_thread: dict[str, int] = {}
@@ -290,22 +291,85 @@ class PetAgentSession:
         return res
 
     def start_autonomy(self) -> None:
-        """Start the background autonomous pet loop task."""
-        if self._autonomy_task is not None and not self._autonomy_task.done():
-            return
+        """Start the background autonomous pet loop and continuous microphone listener."""
         self._stop_event.clear()
-        self._autonomy_task = asyncio.create_task(self._autonomy_runner(), name="nebi-ai-autonomy")
+        if self._autonomy_task is None or self._autonomy_task.done():
+            self._autonomy_task = asyncio.create_task(self._autonomy_runner(), name="nebi-ai-autonomy")
+        if self._listen_task is None or self._listen_task.done():
+            self._listen_task = asyncio.create_task(self._listen_runner(), name="nebi-ai-listener")
 
     async def stop_autonomy(self) -> None:
-        """Stop the background autonomous pet loop task."""
+        """Stop the background autonomous pet loop and continuous microphone listener."""
         self._stop_event.set()
-        if self._autonomy_task is not None:
-            self._autonomy_task.cancel()
+        for task in (self._autonomy_task, self._listen_task):
+            if task is not None:
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+        self._autonomy_task = None
+        self._listen_task = None
+
+    async def _listen_runner(self) -> None:
+        """Continuously listen to the robot microphone and wake the pet agent when speech is heard."""
+        try:
+            await asyncio.wait_for(self._stop_event.wait(), timeout=1.5)
+            return
+        except asyncio.TimeoutError:
+            pass
+
+        while not self._stop_event.is_set():
+            if not self.config.listen_enabled or self.config.is_quiet_now() or self.busy or self._turn_lock.locked():
+                try:
+                    await asyncio.wait_for(self._stop_event.wait(), timeout=0.4)
+                except asyncio.TimeoutError:
+                    continue
+                return
+
             try:
-                await self._autonomy_task
-            except asyncio.CancelledError:
-                pass
-            self._autonomy_task = None
+                res = await self.bridge.call("listen", {"seconds": self.config.listen_window_sec})
+            except Exception:
+                logger.debug("Background listen call failed; backing off", exc_info=True)
+                try:
+                    await asyncio.wait_for(self._stop_event.wait(), timeout=3.0)
+                except asyncio.TimeoutError:
+                    continue
+                return
+
+            if not res.get("ok"):
+                try:
+                    await asyncio.wait_for(self._stop_event.wait(), timeout=3.0)
+                except asyncio.TimeoutError:
+                    continue
+                return
+
+            result = res.get("result") or {}
+            if result.get("stt") == "loading":
+                try:
+                    await asyncio.wait_for(self._stop_event.wait(), timeout=2.0)
+                except asyncio.TimeoutError:
+                    continue
+                return
+
+            text = str(result.get("text") or "").strip()
+            if result.get("speech") and text:
+                self._broadcast("heard", {"text": text})
+                try:
+                    await self.chat(f"[Heard via microphone]: {text}")
+                except Exception:
+                    logger.exception("Failed handling heard speech")
+                # Brief cooldown after speaking so we don't immediately pick up tail echo.
+                try:
+                    await asyncio.wait_for(self._stop_event.wait(), timeout=0.8)
+                except asyncio.TimeoutError:
+                    continue
+                return
+
+            try:
+                await asyncio.wait_for(self._stop_event.wait(), timeout=0.15)
+            except asyncio.TimeoutError:
+                continue
 
     async def _autonomy_runner(self) -> None:
         # Short initial delay so the Web UI / robot connection settles first.

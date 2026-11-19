@@ -188,6 +188,7 @@
       <span class="pill">Posture: <strong id="st-posture">—</strong></span>
       <span class="pill">Battery: <strong id="st-battery">—</strong></span>
       <span class="pill">Targets: <strong id="st-targets">0</strong></span>
+      <span class="pill">Mic: <strong id="st-mic">—</strong></span>
       <span class="pill">Autonomy: <strong id="st-autonomy">—</strong></span>
     </div>
     <div class="header-actions">
@@ -273,6 +274,10 @@
             <input type="text" id="cfg-quiet" placeholder="22-8">
           </label>
         </div>
+        <label class="toggle">
+          <span>Continuous Microphone Listening</span>
+          <input type="checkbox" id="cfg-listen">
+        </label>
         <label class="toggle">
           <span>Autonomous Pet Mode</span>
           <input type="checkbox" id="cfg-autonomy">
@@ -375,6 +380,7 @@ function setBusy(busy, kind) {
 function fillConfigForm(cfg, presets) {
   currentConfig = cfg;
   $("#pet-title").textContent = cfg.pet_name || "Nebi";
+  $("#st-mic").textContent = cfg.listen_enabled !== false ? "LISTENING" : "OFF";
   $("#st-autonomy").textContent = cfg.autonomy_enabled ? `ON (${cfg.autonomy_interval_sec}s)` : "PAUSED";
   $("#cfg-pet-name").value = cfg.pet_name || "Nebi";
   $("#cfg-model").value = cfg.model || "";
@@ -383,6 +389,7 @@ function fillConfigForm(cfg, presets) {
   $("#cfg-max-drive").value = cfg.max_drive_m ?? 1.0;
   $("#cfg-interval").value = cfg.autonomy_interval_sec ?? 25;
   $("#cfg-quiet").value = cfg.quiet_hours || "";
+  $("#cfg-listen").checked = cfg.listen_enabled !== false;
   $("#cfg-autonomy").checked = Boolean(cfg.autonomy_enabled);
   $("#cfg-auto-drive").checked = Boolean(cfg.autonomy_allow_drive);
   $("#cfg-voice").checked = cfg.voice_enabled !== false;
@@ -505,6 +512,7 @@ $("#btn-save-cfg").addEventListener("click", async () => {
     max_drive_m: parseFloat($("#cfg-max-drive").value),
     autonomy_interval_sec: parseFloat($("#cfg-interval").value),
     quiet_hours: $("#cfg-quiet").value.trim(),
+    listen_enabled: $("#cfg-listen").checked,
     autonomy_enabled: $("#cfg-autonomy").checked,
     autonomy_allow_drive: $("#cfg-auto-drive").checked,
     voice_enabled: $("#cfg-voice").checked,
