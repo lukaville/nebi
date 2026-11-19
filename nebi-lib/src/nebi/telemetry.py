@@ -227,6 +227,7 @@ def _on_status_hms_active_snapshot(t: RobotTelemetrySnapshot, d: Any) -> None:
         old = prev.get((alert.code, alert.instance))
         if old is not None:
             alert.timestamp = old.timestamp
+            alert.source = old.source
         elif idx < len(firsts) and _epoch_ms(int(firsts[idx])):
             alert.timestamp = int(firsts[idx]) / 1000.0
         alerts.append(alert)

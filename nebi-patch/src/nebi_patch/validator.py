@@ -76,7 +76,6 @@ _MACHO_MAGICS: frozenset[bytes] = frozenset(
 )
 
 _EXEC_DIR_PREFIXES = ("/bin/", "/sbin/", "/usr/bin/", "/usr/sbin/")
-_SPOOL_MEMORY_LIMIT = 32 * 1024 * 1024
 
 EM_AARCH64 = 183
 
@@ -359,7 +358,7 @@ def _collect_base_x5_crcs(base_zip_path: str | Path | None) -> dict[str, tuple[i
         if not bx5:
             return base_x5_crcs
         with (
-            tempfile.SpooledTemporaryFile(max_size=_SPOOL_MEMORY_LIMIT) as spool,
+            tempfile.TemporaryFile() as spool,
             _open_nested_zip(bzf, bx5[0], spool) as bx5_zf,
         ):
             for zi in bx5_zf.infolist():
@@ -424,7 +423,7 @@ def _verify_inner_x5_archive(
     ota_process_mode: int | None = None
 
     with (
-        tempfile.SpooledTemporaryFile(max_size=_SPOOL_MEMORY_LIMIT) as spool,
+        tempfile.TemporaryFile() as spool,
         _open_nested_zip(outer_zf, x5_entry_name, spool) as x5_zf,
     ):
         bad_inner = x5_zf.testzip()
