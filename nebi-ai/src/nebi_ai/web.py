@@ -22,8 +22,8 @@ _QUICK_ACTIONS: dict[str, tuple[str, dict[str, Any]]] = {
     "sit": ("sit", {}),
     "dock": ("dock", {}),
     "look": ("look", {"annotate": True}),
-    "greet": ("emote", {"kind": "greet"}),
-    "happy": ("emote", {"kind": "happy"}),
+    "greet": ("emote", {"emotion": "greet"}),
+    "happy": ("emote", {"emotion": "happy"}),
     "wiggle": ("body", {"gesture": "wiggle"}),
 }
 
@@ -116,6 +116,18 @@ def create_web_app(
             raise HTTPException(status_code=400, detail="Message must not be empty")
         record = await session.chat(body.message)
         return record.to_dict()
+
+    @app.post("/api/listen")
+    async def api_listen(seconds: float = Query(default=8.0, ge=1.0, le=30.0)) -> dict[str, Any]:
+        """Listen through the robot microphone, transcribe speech, and send it to the pet agent."""
+        heard = await session.bridge.call("listen", {"seconds": seconds})
+        if not heard.get("ok"):
+            return {"ok": False, "heard": heard}
+        text = str((heard.get("result") or {}).get("text") or "").strip()
+        if not text:
+            return {"ok": True, "heard": heard, "text": "", "turn": None}
+        record = await session.chat(f"[Heard via microphone]: {text}")
+        return {"ok": True, "heard": heard, "text": text, "turn": record.to_dict()}
 
     @app.post("/api/tick")
     async def api_tick() -> dict[str, Any]:

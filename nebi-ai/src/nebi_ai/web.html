@@ -226,6 +226,7 @@
         </div>
         <div class="quick-grid">
           <button data-act="look">Look</button>
+          <button id="btn-listen" title="Listen via robot mic and reply">Listen</button>
           <button data-act="stand">Stand</button>
           <button data-act="sit">Sit</button>
           <button data-act="greet">Greet</button>
@@ -458,6 +459,19 @@ $("#chat-form").addEventListener("submit", async (e) => {
 $("#btn-tick").addEventListener("click", async () => {
   await fetch("/api/tick", { method: "POST" });
   refreshState();
+});
+
+$("#btn-listen").addEventListener("click", async () => {
+  const btn = $("#btn-listen");
+  btn.disabled = true;
+  btn.textContent = "Listening…";
+  try {
+    await fetch("/api/listen", { method: "POST" });
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Listen";
+    refreshState();
+  }
 });
 
 $("#btn-stop").addEventListener("click", async () => {

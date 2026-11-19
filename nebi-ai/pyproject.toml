@@ -44,6 +44,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+pet = ["nebi-cli[pet]"]
 openai = ["langchain-openai>=0.3.0"]
 anthropic = ["langchain-anthropic>=0.3.0"]
 ollama = ["langchain-ollama>=0.2.0"]

@@ -109,11 +109,22 @@ async def test_bridge_tools_and_safety_gates_on_simulator() -> None:
         assert drive_res["ok"] is False
         assert drive_res["error"]["code"] == "AUTONOMY_LOCOMOTION_LOCKED"
 
-        # Look works and caches a JPEG snapshot
-        look_res = json.loads(await tools["robot_look"].ainvoke({"annotate": True}))
-        assert look_res["ok"] is True
+        # Look returns multimodal content (JSON text + base64 JPEG image_url) and caches a JPEG snapshot
+        look_res = await tools["robot_look"].ainvoke({"annotate": True})
+        assert isinstance(look_res, list) and len(look_res) == 2
+        assert json.loads(look_res[0]["text"])["ok"] is True
+        assert look_res[1]["type"] == "image_url"
+        assert look_res[1]["image_url"]["url"].startswith("data:image/jpeg;base64,")
         snap = bridge.read_last_snapshot_bytes()
         assert snap is not None and snap.startswith(b"\xff\xd8")
+
+        # Emote, eyes, schema, and generic robot_command (plus blocked commands)
+        assert json.loads(await tools["robot_emote"].ainvoke({"emotion": "happy"}))["ok"] is True
+        assert json.loads(await tools["robot_eyes"].ainvoke({"what": "happy", "hold": 2.0}))["ok"] is True
+        assert json.loads(await tools["robot_schema"].ainvoke({"name": "listen"}))["ok"] is True
+        assert json.loads(await tools["robot_command"].ainvoke({"command": "state", "args_json": "{}"}))["ok"] is True
+        blocked = json.loads(await tools["robot_command"].ainvoke({"command": "estop"}))
+        assert blocked["ok"] is False and blocked["error"]["code"] == "COMMAND_BLOCKED"
     finally:
         await bridge.stop()
 
