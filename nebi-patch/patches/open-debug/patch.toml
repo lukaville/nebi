@@ -1,0 +1,9 @@
+# open-debug — enable ssh + adb by removing the authorized-debug marker.
+#
+# Deletes /md/etc/authorized_debug_profile. With the marker gone:
+#   - S50sshd `start` launches sshd (0.0.0.0:22, PermitRootLogin/PasswordAuthentication yes)
+#   - S99md_adb_guard.sh runs its legacy watchdog -> adbd (root, no lease)
+#   - md_sys composes the default gadget (md_usb_gadget.json has adb.enabled:true)
+# No binaries/configs added. Reversible via patches/restore-debug-lock.
+# [package].version and 0300 X5 version are auto-bumped by nebi-patch.
+[package]

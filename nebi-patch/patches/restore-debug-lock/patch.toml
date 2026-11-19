@@ -1,0 +1,6 @@
+# restore-debug-lock — re-add /md/etc/authorized_debug_profile to return the
+# robot to lease-gated ssh/adb (undo of patches/open-debug).
+[package]
+
+[modes]
+"/etc/authorized_debug_profile" = "0644"

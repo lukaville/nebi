@@ -82,6 +82,8 @@ class FakeRun:
 def run(monkeypatch: pytest.MonkeyPatch) -> FakeRun:
     fake = FakeRun()
     monkeypatch.setattr(tts_system.subprocess, "run", fake)
+    monkeypatch.delenv("LC_ALL", raising=False)  # take precedence over LANG (CI macOS sets LC_ALL=en_US.UTF-8)
+    monkeypatch.delenv("LC_MESSAGES", raising=False)
     monkeypatch.setenv("LANG", "en_GB.UTF-8")
     return fake
 

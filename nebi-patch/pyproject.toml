@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=77"]   # PEP 639 license expression + license-files
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nebi-patch"
+version = "0.1.0"
+description = "Unofficial firmware patcher, integrity verifier, and OTA uploader compatible with the Beni robot (LZ110/LZ100). Not affiliated with the manufacturer."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]   # copies of the monorepo root files (PEP 639 forbids ../ paths)
+authors = [{ name = "The nebi authors" }]
+keywords = ["robot", "robotics", "beni", "lz110", "lz100", "firmware", "ota", "ext4"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Environment :: Console",
+    "Topic :: System :: Hardware",
+    "Typing :: Typed",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "tomli>=2.0.1; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+# Optional nebi SDK integration for Zenoh/UCP V2 Upload-Token minting, pre-flight battery/posture checks, and --trigger.
+nebi = ["nebi-lib>=0.2.0,<0.3"]
+dev = [
+    "nebi-patch[nebi]",
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+nebi-patch = "nebi_patch.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"nebi_patch" = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_default_fixture_loop_scope = "function"   # silences pytest-asyncio from the shared venv
+
+# ruff + mypy: shared monorepo config in ../pyproject.toml
