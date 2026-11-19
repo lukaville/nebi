@@ -57,11 +57,12 @@ jobs:
         run: |
           python -m venv /tmp/smoke
           /tmp/smoke/bin/pip install dist/*.whl
-          /tmp/smoke/bin/python -c "import nebi, nebi_cockpit, nebi_cli, nebi_voice, nebi_voice.extension, nebi_patch; print(nebi.__version__)"
+          /tmp/smoke/bin/python -c "import nebi, nebi_cockpit, nebi_cli, nebi_voice, nebi_voice.extension, nebi_patch, nebi_ai; print(nebi.__version__)"
           /tmp/smoke/bin/nebi --help > /dev/null
           /tmp/smoke/bin/nebi-cockpit --help > /dev/null
           /tmp/smoke/bin/nebi-voice --help > /dev/null
           /tmp/smoke/bin/nebi-patch --help > /dev/null
+          /tmp/smoke/bin/nebi-ai --help > /dev/null
       - uses: actions/upload-artifact@v4
         with:
           name: dist

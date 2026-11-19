@@ -9,6 +9,6 @@ find . -name .venv -prune -o -type d \( -name '*.egg-info' -o -name __pycache__ 
     -o -name .mypy_cache -o -name .ruff_cache \) -prune -print -exec rm -rf {} +
 find . -name .venv -prune -o \( -type f -name .DS_Store -print -delete \)
 for d in dist build nebi-lib/dist nebi-lib/build nebi-cockpit/dist nebi-cockpit/build nebi-cli/dist nebi-cli/build \
-         nebi-voice/dist nebi-voice/build nebi-patch/dist nebi-patch/build; do
+         nebi-voice/dist nebi-voice/build nebi-patch/dist nebi-patch/build nebi-ai/dist nebi-ai/build; do
     if [ -d "$d" ]; then echo "./$d"; rm -rf "$d"; fi
 done

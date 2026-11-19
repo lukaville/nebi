@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>nebi-ai — Pet Robot</title>
+<style>
+  :root {
+    --bg: #0f1218;
+    --panel: #171c26;
+    --panel-2: #1e2533;
+    --border: #2a3345;
+    --text: #e8edf5;
+    --muted: #93a1b8;
+    --accent: #63b3ed;
+    --accent-2: #805ad5;
+    --ok: #48bb78;
+    --warn: #ecc94b;
+    --danger: #f56565;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    font-size: 14px; line-height: 1.45;
+  }
+  .app {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 18px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+  .dot.ok { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .dot.busy { background: var(--warn); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .status-pills { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .pill {
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--muted); font-size: 12px;
+  }
+  .pill strong { color: var(--text); font-weight: 600; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  button {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel-2); color: var(--text);
+    padding: 6px 12px; font-size: 13px; font-weight: 500;
+    transition: background .15s, border-color .15s;
+  }
+  button:hover { background: #273042; border-color: #3d4b66; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.primary { background: var(--accent); color: #0a1019; border-color: var(--accent); font-weight: 600; }
+  button.primary:hover { background: #7ec3f3; }
+  button.danger { background: var(--danger); color: #fff; border-color: var(--danger); font-weight: 700; }
+  button.danger:hover { background: #fc8181; }
+
+  main {
+    display: grid;
+    grid-template-columns: minmax(340px, 1.4fr) minmax(320px, 1fr);
+    gap: 14px;
+    padding: 14px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; overflow-y: auto; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex; flex-direction: column;
+    min-height: 0; overflow: hidden;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    font-weight: 600; font-size: 13px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  /* Chat */
+  .chat-log {
+    flex: 1; overflow-y: auto; padding: 14px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .msg {
+    max-width: 88%; padding: 10px 13px; border-radius: 12px;
+    border: 1px solid var(--border); white-space: pre-wrap; word-break: break-word;
+  }
+  .msg.user { align-self: flex-end; background: #1c2e45; border-color: #2c4a70; }
+  .msg.pet { align-self: flex-start; background: var(--panel-2); }
+  .msg.auto { align-self: flex-start; background: #1b1829; border-color: #352b54; }
+  .msg.err { border-color: var(--danger); background: #2c161c; }
+  .msg-meta { font-size: 11px; color: var(--muted); margin-bottom: 4px; display: flex; gap: 8px; }
+  .tools { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .tool-tag {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px; padding: 2px 7px; border-radius: 6px;
+    background: #121722; border: 1px solid var(--border); color: var(--accent);
+  }
+  .chat-input {
+    display: flex; gap: 8px; padding: 12px;
+    border-top: 1px solid var(--border); background: #131720;
+  }
+  .chat-input input {
+    flex: 1; padding: 9px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+    font-size: 14px; outline: none;
+  }
+  .chat-input input:focus { border-color: var(--accent); }
+
+  /* Right sidebar tabs */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); background: #131720; }
+  .tab {
+    flex: 1; padding: 10px; text-align: center; font-weight: 600; font-size: 13px;
+    color: var(--muted); border: none; border-radius: 0; background: transparent;
+    border-bottom: 2px solid transparent;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--panel); }
+  .tab-body { flex: 1; overflow-y: auto; padding: 14px; display: none; flex-direction: column; gap: 14px; }
+  .tab-body.active { display: flex; }
+
+  .cam-box {
+    background: #0b0e14; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 12px;
+  }
+  .cam-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  /* Form controls */
+  label.field { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
+  label.field input[type="text"],
+  label.field input[type="password"],
+  label.field input[type="number"],
+  label.field select,
+  label.field textarea {
+    width: 100%; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: #11151d; color: var(--text);
+    font-family: inherit; font-size: 13px;
+  }
+  label.field textarea { min-height: 90px; resize: vertical; }
+  label.toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text); }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hint { font-size: 11px; color: var(--muted); }
+  .banner-warn {
+    padding: 8px 12px; border-radius: 8px; font-size: 12px;
+    background: #2f2612; border: 1px solid #6b531c; color: #f6e05e;
+  }
+
+  /* Memory editor */
+  .mem-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .mem-chip {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px; padding: 4px 9px; border-radius: 6px;
+  }
+  .mem-chip.active { border-color: var(--accent); color: var(--accent); }
+  #mem-editor {
+    flex: 1; min-height: 260px; width: 100%;
+    padding: 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: #0e1219; color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px;
+    resize: vertical;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <span class="dot" id="status-dot"></span>
+      <span id="pet-title">Nebi</span>
+      <span class="pill" id="target-pill">connecting…</span>
+    </div>
+    <div class="status-pills">
+      <span class="pill">Posture: <strong id="st-posture">—</strong></span>
+      <span class="pill">Battery: <strong id="st-battery">—</strong></span>
+      <span class="pill">Targets: <strong id="st-targets">0</strong></span>
+      <span class="pill">Autonomy: <strong id="st-autonomy">—</strong></span>
+    </div>
+    <div class="header-actions">
+      <button id="btn-tick" title="Run one autonomous pet tick now">Wake Tick</button>
+      <button class="danger" id="btn-stop" title="Stop all motion and pause autonomy">STOP</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="card-header">
+        <span>Pet Chat &amp; Activity</span>
+        <span id="busy-label" style="color:var(--accent);text-transform:none;"></span>
+      </div>
+      <div class="chat-log" id="chat-log"></div>
+      <form class="chat-input" id="chat-form">
+        <input id="chat-text" type="text" placeholder="Talk to your pet robot… (e.g. 'Say hi and remember my name is Alex')" autocomplete="off">
+        <button class="primary" type="submit" id="chat-send">Send</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="robot">Robot</button>
+        <button class="tab" data-tab="params">Parameters</button>
+        <button class="tab" data-tab="memory">Memory</button>
+      </div>
+
+      <div class="tab-body active" id="tab-robot">
+        <div id="key-warning" class="banner-warn" style="display:none;">
+          No API key detected for the selected provider. Set <code>GOOGLE_API_KEY</code> (or <code>GEMINI_API_KEY</code>) or enter one in the <strong>Parameters</strong> tab.
+        </div>
+        <div class="cam-box" id="cam-box">
+          <img id="cam-img" alt="Robot camera" style="display:none;">
+          <span id="cam-empty">Click "Look" to capture a live frame</span>
+        </div>
+        <div class="quick-grid">
+          <button data-act="look">Look</button>
+          <button data-act="stand">Stand</button>
+          <button data-act="sit">Sit</button>
+          <button data-act="greet">Greet</button>
+          <button data-act="wiggle">Wiggle</button>
+          <button data-act="dock">Dock</button>
+        </div>
+        <div class="hint" id="home-path-hint"></div>
+      </div>
+
+      <div class="tab-body" id="tab-params">
+        <label class="field">
+          Pet Name
+          <input type="text" id="cfg-pet-name">
+        </label>
+        <label class="field">
+          Model Preset
+          <select id="cfg-model-preset"></select>
+        </label>
+        <label class="field">
+          Model ID (provider:model)
+          <input type="text" id="cfg-model" placeholder="google_genai:gemini-2.5-flash">
+        </label>
+        <label class="field">
+          API Key Override (optional, stored in memory only)
+          <input type="password" id="cfg-api-key" placeholder="Leave blank to keep environment / current key">
+        </label>
+        <div class="row-2">
+          <label class="field">
+            Temperature (<span id="lbl-temp">0.6</span>)
+            <input type="range" id="cfg-temp" min="0" max="1.5" step="0.05">
+          </label>
+          <label class="field">
+            Max Drive (m)
+            <input type="number" id="cfg-max-drive" min="0.1" max="3.0" step="0.1">
+          </label>
+        </div>
+        <div class="row-2">
+          <label class="field">
+            Autonomy Interval (s)
+            <input type="number" id="cfg-interval" min="5" max="300" step="1">
+          </label>
+          <label class="field">
+            Quiet Hours (e.g. 22-8)
+            <input type="text" id="cfg-quiet" placeholder="22-8">
+          </label>
+        </div>
+        <label class="toggle">
+          <span>Autonomous Pet Mode</span>
+          <input type="checkbox" id="cfg-autonomy">
+        </label>
+        <label class="toggle">
+          <span>Allow Driving During Autonomy</span>
+          <input type="checkbox" id="cfg-auto-drive">
+        </label>
+        <label class="toggle">
+          <span>Robot Voice Enabled</span>
+          <input type="checkbox" id="cfg-voice">
+        </label>
+        <label class="field">
+          Personality &amp; Instructions
+          <textarea id="cfg-personality"></textarea>
+        </label>
+        <button class="primary" id="btn-save-cfg">Save Parameters</button>
+        <span class="hint" id="cfg-saved-msg"></span>
+      </div>
+
+      <div class="tab-body" id="tab-memory">
+        <div class="hint" id="mem-dir-label"></div>
+        <div class="mem-list" id="mem-list"></div>
+        <div class="row-2">
+          <input type="text" id="mem-new-path" placeholder="New file (e.g. people.md)" style="padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:#11151d;color:var(--text);">
+          <button id="btn-mem-new">Create / Open</button>
+        </div>
+        <textarea id="mem-editor" placeholder="Select a memory file above…"></textarea>
+        <div style="display:flex;gap:8px;justify-content:space-between;">
+          <button class="primary" id="btn-mem-save">Save File</button>
+          <button id="btn-mem-refresh">Refresh List</button>
+          <button class="danger" id="btn-mem-delete">Delete</button>
+        </div>
+        <span class="hint" id="mem-status"></span>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let currentConfig = {};
+let activeMemPath = "MEMORY.md";
+
+document.querySelectorAll(".tab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".tab-body").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    $("#tab-" + btn.dataset.tab).classList.add("active");
+    if (btn.dataset.tab === "memory") loadMemories();
+  });
+});
+
+function formatTime(ts) {
+  return new Date(ts * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function appendTurn(turn) {
+  const log = $("#chat-log");
+  if (turn.kind === "chat" && turn.prompt) {
+    const u = document.createElement("div");
+    u.className = "msg user";
+    u.innerHTML = `<div class="msg-meta"><span>You</span><span>${formatTime(turn.timestamp)}</span></div>`;
+    const body = document.createElement("div");
+    body.textContent = turn.prompt;
+    u.appendChild(body);
+    log.appendChild(u);
+  }
+  const el = document.createElement("div");
+  el.className = "msg " + (turn.error ? "err" : (turn.kind === "autonomy" ? "auto" : "pet"));
+  const who = turn.kind === "autonomy" ? `${currentConfig.pet_name || "Nebi"} (autonomy)` : (currentConfig.pet_name || "Nebi");
+  el.innerHTML = `<div class="msg-meta"><span>${who}</span><span>${formatTime(turn.timestamp)}</span></div>`;
+  const body = document.createElement("div");
+  body.textContent = turn.error ? `Error: ${turn.error}` : (turn.reply || "(no text reply)");
+  el.appendChild(body);
+  if (turn.tool_calls && turn.tool_calls.length) {
+    const tools = document.createElement("div");
+    tools.className = "tools";
+    for (const tc of turn.tool_calls) {
+      const tag = document.createElement("span");
+      tag.className = "tool-tag";
+      tag.textContent = tc.name;
+      tag.title = JSON.stringify(tc.args || {});
+      tools.appendChild(tag);
+    }
+    el.appendChild(tools);
+  }
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setBusy(busy, kind) {
+  $("#status-dot").className = "dot " + (busy ? "busy" : "ok");
+  $("#busy-label").textContent = busy ? (kind === "autonomy" ? "Thinking (autonomy)…" : "Thinking…") : "";
+  $("#chat-send").disabled = busy;
+  $("#btn-tick").disabled = busy;
+}
+
+function fillConfigForm(cfg, presets) {
+  currentConfig = cfg;
+  $("#pet-title").textContent = cfg.pet_name || "Nebi";
+  $("#st-autonomy").textContent = cfg.autonomy_enabled ? `ON (${cfg.autonomy_interval_sec}s)` : "PAUSED";
+  $("#cfg-pet-name").value = cfg.pet_name || "Nebi";
+  $("#cfg-model").value = cfg.model || "";
+  $("#cfg-temp").value = cfg.temperature ?? 0.6;
+  $("#lbl-temp").textContent = String(cfg.temperature ?? 0.6);
+  $("#cfg-max-drive").value = cfg.max_drive_m ?? 1.0;
+  $("#cfg-interval").value = cfg.autonomy_interval_sec ?? 25;
+  $("#cfg-quiet").value = cfg.quiet_hours || "";
+  $("#cfg-autonomy").checked = Boolean(cfg.autonomy_enabled);
+  $("#cfg-auto-drive").checked = Boolean(cfg.autonomy_allow_drive);
+  $("#cfg-voice").checked = cfg.voice_enabled !== false;
+  $("#cfg-personality").value = cfg.personality || "";
+  if (presets) {
+    const sel = $("#cfg-model-preset");
+    sel.innerHTML = "";
+    for (const p of presets) {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.label;
+      if (p.id === cfg.model) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+}
+
+$("#cfg-model-preset").addEventListener("change", (e) => {
+  $("#cfg-model").value = e.target.value;
+});
+$("#cfg-temp").addEventListener("input", (e) => {
+  $("#lbl-temp").textContent = e.target.value;
+});
+
+async function loadInfo() {
+  const res = await fetch("/api/info");
+  const info = await res.json();
+  fillConfigForm(info.config, info.model_presets);
+  $("#target-pill").textContent = info.target;
+  $("#home-path-hint").textContent = `Memory home: ${info.memories_dir}`;
+  $("#mem-dir-label").textContent = `Directory: ${info.memories_dir}`;
+  $("#key-warning").style.display = info.has_api_key ? "none" : "block";
+  setBusy(info.busy, "");
+}
+
+async function loadHistory() {
+  const res = await fetch("/api/history?limit=60");
+  const data = await res.json();
+  $("#chat-log").innerHTML = "";
+  for (const item of data.items || []) appendTurn(item);
+}
+
+async function refreshState() {
+  try {
+    const res = await fetch("/api/state");
+    const env = await res.json();
+    const st = env.state || env.result || {};
+    $("#st-posture").textContent = st.posture || "—";
+    $("#st-battery").textContent = st.battery != null ? `${st.battery}%${st.charging ? " ⚡" : ""}` : "—";
+    $("#st-targets").textContent = Array.isArray(st.targets) ? String(st.targets.length) : String(st.targets ?? 0);
+  } catch (_) {}
+}
+
+function refreshCamera(force = false) {
+  const img = $("#cam-img");
+  img.onload = () => { img.style.display = "block"; $("#cam-empty").style.display = "none"; };
+  img.src = `/api/camera.jpg?refresh=${force ? 1 : 0}&t=${Date.now()}`;
+}
+
+$("#chat-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = $("#chat-text");
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = "";
+  await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: msg }),
+  });
+  refreshState();
+});
+
+$("#btn-tick").addEventListener("click", async () => {
+  await fetch("/api/tick", { method: "POST" });
+  refreshState();
+});
+
+$("#btn-stop").addEventListener("click", async () => {
+  await fetch("/api/action", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "stop" }),
+  });
+  await loadInfo();
+  refreshState();
+});
+
+document.querySelectorAll("[data-act]").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const act = btn.dataset.act;
+    await fetch("/api/action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: act }),
+    });
+    if (act === "look") refreshCamera(false);
+    refreshState();
+  });
+});
+
+$("#btn-save-cfg").addEventListener("click", async () => {
+  const updates = {
+    pet_name: $("#cfg-pet-name").value.trim(),
+    model: $("#cfg-model").value.trim(),
+    temperature: parseFloat($("#cfg-temp").value),
+    max_drive_m: parseFloat($("#cfg-max-drive").value),
+    autonomy_interval_sec: parseFloat($("#cfg-interval").value),
+    quiet_hours: $("#cfg-quiet").value.trim(),
+    autonomy_enabled: $("#cfg-autonomy").checked,
+    autonomy_allow_drive: $("#cfg-auto-drive").checked,
+    voice_enabled: $("#cfg-voice").checked,
+    personality: $("#cfg-personality").value,
+  };
+  const apiKey = $("#cfg-api-key").value.trim();
+  const res = await fetch("/api/config", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ updates, api_key: apiKey || null }),
+  });
+  const data = await res.json();
+  fillConfigForm(data.config);
+  $("#cfg-api-key").value = "";
+  $("#key-warning").style.display = data.has_api_key ? "none" : "block";
+  $("#cfg-saved-msg").textContent = "Saved!";
+  setTimeout(() => { $("#cfg-saved-msg").textContent = ""; }, 2000);
+});
+
+async function loadMemories() {
+  const res = await fetch("/api/memories");
+  const data = await res.json();
+  const list = $("#mem-list");
+  list.innerHTML = "";
+  for (const f of data.files || []) {
+    const b = document.createElement("button");
+    b.className = "mem-chip" + (f.path === activeMemPath ? " active" : "");
+    b.textContent = f.path;
+    b.addEventListener("click", () => openMemory(f.path));
+    list.appendChild(b);
+  }
+  if (activeMemPath) openMemory(activeMemPath);
+}
+
+async function openMemory(path) {
+  activeMemPath = path;
+  document.querySelectorAll(".mem-chip").forEach((c) => c.classList.toggle("active", c.textContent === path));
+  const res = await fetch(`/api/memories/${encodeURIComponent(path)}`);
+  if (res.ok) {
+    const data = await res.json();
+    $("#mem-editor").value = data.content;
+    $("#mem-status").textContent = `Editing ${path}`;
+  } else {
+    $("#mem-editor").value = "";
+    $("#mem-status").textContent = `New file: ${path}`;
+  }
+}
+
+$("#btn-mem-new").addEventListener("click", () => {
+  const p = $("#mem-new-path").value.trim();
+  if (!p) return;
+  $("#mem-new-path").value = "";
+  openMemory(p);
+});
+
+$("#btn-mem-save").addEventListener("click", async () => {
+  if (!activeMemPath) return;
+  const res = await fetch(`/api/memories/${encodeURIComponent(activeMemPath)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content: $("#mem-editor").value }),
+  });
+  $("#mem-status").textContent = res.ok ? `Saved ${activeMemPath}` : "Save failed";
+  loadMemories();
+});
+
+$("#btn-mem-delete").addEventListener("click", async () => {
+  if (!activeMemPath) return;
+  await fetch(`/api/memories/${encodeURIComponent(activeMemPath)}`, { method: "DELETE" });
+  activeMemPath = "MEMORY.md";
+  loadMemories();
+});
+
+$("#btn-mem-refresh").addEventListener("click", loadMemories);
+
+function connectEvents() {
+  const es = new EventSource("/api/events");
+  es.onmessage = (ev) => {
+    try {
+      const msg = JSON.parse(ev.data);
+      if (msg.type === "turn") {
+        appendTurn(msg.data);
+        refreshState();
+      } else if (msg.type === "status") {
+        setBusy(msg.data.busy, msg.data.kind);
+      } else if (msg.type === "config") {
+        fillConfigForm(msg.data);
+      }
+    } catch (_) {}
+  };
+}
+
+(async () => {
+  await loadInfo();
+  await loadHistory();
+  await refreshState();
+  connectEvents();
+  setInterval(refreshState, 4000);
+})();
+</script>
+</body>
+</html>

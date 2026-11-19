@@ -81,6 +81,7 @@ project, so each package publishes from its own GitHub environment:
 | `nebi-cli` | `lukaville` | `nebi` | `publish.yml` | `pypi-nebi-cli` | `testpypi-nebi-cli` |
 | `nebi-voice` | `lukaville` | `nebi` | `publish.yml` | `pypi-nebi-voice` | `testpypi-nebi-voice` |
 | `nebi-patch` | `lukaville` | `nebi` | `publish.yml` | `pypi-nebi-patch` | `testpypi-nebi-patch` |
+| `nebi-ai` | `lukaville` | `nebi` | `publish.yml` | `pypi-nebi-ai` | `testpypi-nebi-ai` |
 
 Add each row as a *pending publisher* on pypi.org (*Your account → Publishing*), and on test.pypi.org with the
 TestPyPI environment. The GitHub environments already exist (*Settings → Environments*; optionally require a

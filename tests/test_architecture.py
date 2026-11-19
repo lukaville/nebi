@@ -6,6 +6,7 @@ functions and `if TYPE_CHECKING:` blocks):
     nebi_cli      -> nebi_cockpit, nebi
     nebi_voice    -> nebi (only in its extension adapter, lazily; the voice itself needs none of ours)
     nebi_patch    -> nebi (only lazily for Zenoh V2 OTA & pre-flight checks; patching/verifying needs none of ours)
+    nebi_ai       -> nebi_cli, nebi_cockpit, nebi (DeepAgents pet robot harness & web UI; Python >= 3.11)
 
 Extensions (e.g. nebi_voice) live in their own packages and are only ever loaded through nebi's extension loader:
 no core package imports them.
@@ -29,13 +30,15 @@ PACKAGES = {
     "nebi_cli": ROOT / "nebi-cli" / "src" / "nebi_cli",
     "nebi_voice": ROOT / "nebi-voice" / "src" / "nebi_voice",
     "nebi_patch": ROOT / "nebi-patch" / "src" / "nebi_patch",
+    "nebi_ai": ROOT / "nebi-ai" / "src" / "nebi_ai",
 }
 FORBIDDEN = {
-    "nebi": {"nebi_cockpit", "nebi_cli", "nebi_voice", "nebi_patch"},
-    "nebi_cockpit": {"nebi_cli", "nebi_voice", "nebi_patch"},
-    "nebi_cli": {"nebi_voice", "nebi_patch"},
-    "nebi_voice": {"nebi_cockpit", "nebi_cli", "nebi_patch"},
-    "nebi_patch": {"nebi_cockpit", "nebi_cli", "nebi_voice"},
+    "nebi": {"nebi_cockpit", "nebi_cli", "nebi_voice", "nebi_patch", "nebi_ai"},
+    "nebi_cockpit": {"nebi_cli", "nebi_voice", "nebi_patch", "nebi_ai"},
+    "nebi_cli": {"nebi_voice", "nebi_patch", "nebi_ai"},
+    "nebi_voice": {"nebi_cockpit", "nebi_cli", "nebi_patch", "nebi_ai"},
+    "nebi_patch": {"nebi_cockpit", "nebi_cli", "nebi_voice", "nebi_ai"},
+    "nebi_ai": {"nebi_voice", "nebi_patch"},
 }
 WEB_STACK = {"fastapi", "starlette", "uvicorn"}
 

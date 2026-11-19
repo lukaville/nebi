@@ -1,0 +1,91 @@
+nebi — open-source tools and libraries compatible with the Beni robot
+(nebi, nebi-cockpit, nebi-cli, nebi-voice, nebi-patch, nebi-ai)
+
+Copyright 2026 The nebi authors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+
+DISCLAIMER
+----------
+
+nebi is an independent, unofficial project. It is not affiliated with,
+endorsed by, sponsored by or supported by the manufacturer of the Beni robot.
+"Beni" and the model names "LZ110" / "LZ100" are used only to identify the
+hardware this software is compatible with; all trademarks belong to their
+respective owners.
+
+- Use it only with devices you own. Using it may void your warranty and may
+  violate the manufacturer's terms of service.
+- This software physically moves the robot. Supervise the robot at all times
+  and keep a clear space around it: the software can make it fall over, jump
+  or drive into people, animals and objects.
+- Firmware updates and factory resets performed through this software can
+  brick the device or wipe its data.
+- The software is provided "AS IS", WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, and the authors accept no liability for damage to the robot, other
+  property or persons (see sections 7 and 8 of LICENSE).
+
+
+THIRD-PARTY COMPONENTS
+----------------------
+
+1. OpenCV Zoo face models (not included; downloaded at runtime)
+
+   The optional face-recognition features of nebi-cli (`nebi-cli[pet]`)
+   download the following models from https://github.com/opencv/opencv_zoo
+   into the user's cache on first use. They are not distributed with nebi
+   and remain under their own licenses:
+
+   - YuNet face detector (face_detection_yunet_2023mar.onnx)
+     License: MIT. Copyright (c) Shiqi Yu and contributors.
+   - SFace face recognizer (face_recognition_sface_2021dec.onnx)
+     License: Apache License 2.0.
+
+   See the LICENSE file next to each model in the OpenCV Zoo repository.
+
+2. Feather Icons (nebi-cockpit/src/nebi_cockpit/static/index.html)
+
+   The inline SVG icon sprite of the cockpit page is a set of simplified,
+   redrawn icons; several of them (e.g. settings gear, download, eye, link,
+   wifi, camera, star) are adapted from Feather Icons
+   (https://github.com/feathericons/feather), used under the MIT License:
+
+   The MIT License (MIT)
+
+   Copyright (c) 2013-2023 Cole Bemis
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+3. tiny-voca text-to-speech model (nebi-voice; not included, downloaded at
+   runtime) and dizione phonemizer (nebi-voice; vendored)
+
+   nebi-voice downloads the tiny-voca model (https://huggingface.co/n4ze3m/tiny-voca)
+   from the Hugging Face Hub into the user's cache on first use (it is not
+   distributed with nebi). It bundles an unmodified copy of the dizione phonemizer
+   (https://github.com/n4ze3m/dizione, commit 8cd889e) in
+   nebi-voice/src/nebi_voice/_vendor/dizione/, with its LICENSE file:
+
+   - tiny-voca weights and code: Apache License 2.0, by Muhammed Nazeem.
+   - dizione: Apache License 2.0, by Muhammed Nazeem.
+   - tiny-voca phonemizer data (phonemizer/ in the model download): derived from
+     the CMU Pronouncing Dictionary, Copyright (C) 1993-2015 Carnegie Mellon
+     University (BSD-style licence, see phonemizer/LICENSE.cmudict), and from
+     homograph data under the Apache License 2.0 (see
+     phonemizer/LICENSE.homograph-data).

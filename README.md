@@ -150,6 +150,7 @@ nebi-voice serve --open           # playground in the browser
 | [`nebi-cli`](nebi-cli) | The `nebi` command line and its agent runtime |
 | [`nebi-voice`](nebi-voice) | Robot-style text-to-speech, plugged in as an extension |
 | [`nebi-patch`](nebi-patch) | Hardened firmware patcher, verifier and OTA uploader |
+| [`nebi-ai`](nebi-ai) | DeepAgents autonomous pet robot agent and Web UI |
 
 Add your own commands, cockpit panels, voices or sensors with an extension: see the
 [nebi](nebi-lib/README.md#extensions) and [nebi-cli](nebi-cli/README.md#extensions-agent-side) READMEs.

@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=77"]   # PEP 639 license expression + license-files
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nebi-ai"
+version = "0.1.0"
+description = "Unofficial DeepAgents-powered autonomous pet robot agent and web UI for the Beni robot (LZ110/LZ100). Not affiliated with the manufacturer."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]   # copies of the monorepo root files (PEP 639 forbids ../ paths)
+authors = [{ name = "The nebi authors" }]
+keywords = ["robot", "robotics", "beni", "lz110", "lz100", "ai", "agent", "deepagents", "gemini", "pet"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Framework :: AsyncIO",
+    "Framework :: FastAPI",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Hardware",
+    "Typing :: Typed",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "nebi-lib>=0.2.0,<0.3",
+    "nebi-cockpit>=0.3.0,<0.4",
+    "nebi-cli>=0.2.0,<0.3",
+    "deepagents>=0.4.0",
+    "langchain-google-genai>=2.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+openai = ["langchain-openai>=0.3.0"]
+anthropic = ["langchain-anthropic>=0.3.0"]
+ollama = ["langchain-ollama>=0.2.0"]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.6",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+nebi-ai = "nebi_ai.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"nebi_ai" = ["py.typed", "web.html"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+# ruff + mypy: shared monorepo config in ../pyproject.toml

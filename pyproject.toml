@@ -19,6 +19,8 @@ src = [
     "nebi-voice/tests",
     "nebi-patch/src",
     "nebi-patch/tests",
+    "nebi-ai/src",
+    "nebi-ai/tests",
 ]
 extend-exclude = ["nebi-lib/src/nebi/proto", "nebi-lib/proto", "**/build", "**/dist", "nebi-voice/src/nebi_voice/_vendor"]
 
@@ -32,7 +34,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["nebi", "nebi_cockpit", "nebi_cli", "nebi_voice", "nebi_patch"]
+known-first-party = ["nebi", "nebi_cockpit", "nebi_cli", "nebi_voice", "nebi_patch", "nebi_ai"]
 
 [tool.ruff.lint.per-file-ignores]
 "*/tests/*" = ["PLR", "B", "S"]
@@ -48,6 +50,7 @@ files = [
     "nebi-cli/src/nebi_cli",
     "nebi-voice/src/nebi_voice",
     "nebi-patch/src/nebi_patch",
+    "nebi-ai/src/nebi_ai",
 ]
 exclude = ["nebi-lib/src/nebi/proto/", "nebi-voice/src/nebi_voice/_vendor/"]
 ignore_missing_imports = true

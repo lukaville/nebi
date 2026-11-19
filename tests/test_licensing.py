@@ -8,6 +8,7 @@ Run from the monorepo root:  .venv/bin/python -m pytest tests
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pytest
@@ -18,7 +19,7 @@ except ModuleNotFoundError:  # Python 3.10: the tomli backport (installed with m
     tomllib = pytest.importorskip("tomli")
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGES = ("nebi-lib", "nebi-cockpit", "nebi-cli", "nebi-voice", "nebi-patch")
+PACKAGES = ("nebi-lib", "nebi-cockpit", "nebi-cli", "nebi-voice", "nebi-patch", "nebi-ai")
 
 
 def _project(pkg: str) -> dict:
@@ -53,3 +54,7 @@ def test_runtime_versions_come_from_metadata() -> None:
     assert nebi_voice.__version__ == _project("nebi-voice")["version"]
     assert nebi_patch.__version__ == _project("nebi-patch")["version"]
     assert _project("nebi-cockpit")["version"] == APP_VERSION
+    if sys.version_info >= (3, 11):
+        import nebi_ai
+
+        assert nebi_ai.__version__ == _project("nebi-ai")["version"]

@@ -8,7 +8,11 @@ cd "$ROOT"
 "$VENV/bin/ruff" check .
 "$VENV/bin/mypy"
 "$PY" -m pytest -q tests                     # architecture / dependency rules
-for pkg in nebi-lib nebi-cockpit nebi-cli nebi-voice nebi-patch; do
+PKGS="nebi-lib nebi-cockpit nebi-cli nebi-voice nebi-patch"
+if "$PY" -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"; then
+    PKGS="$PKGS nebi-ai"
+fi
+for pkg in $PKGS; do
     echo "== $pkg"
     (cd "$ROOT/$pkg" && "$PY" -m pytest -q)
 done

@@ -53,6 +53,8 @@ jobs:
             dist: nebi_voice
           - package: nebi-patch
             dist: nebi_patch
+          - package: nebi-ai
+            dist: nebi_ai
     environment:
       name: ${{ (github.event_name == 'workflow_dispatch' && inputs.repository == 'testpypi') && 'testpypi' || 'pypi' }}-${{ matrix.package }}
       url: ${{ (github.event_name == 'workflow_dispatch' && inputs.repository == 'testpypi') && 'https://test.pypi.org' || 'https://pypi.org' }}/p/${{ matrix.package }}
