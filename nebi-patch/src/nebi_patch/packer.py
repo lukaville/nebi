@@ -105,6 +105,7 @@ def copy_zip_entry_streaming(
     src_zip: zipfile.ZipFile,
     src_name: str,
     dest_zip: zipfile.ZipFile,
+    *,
     dest_name: str | None = None,
     compress_type: int | None = zipfile.ZIP_STORED,
     force_unix_mode: int | None = None,

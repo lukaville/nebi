@@ -8,5 +8,5 @@ PY="${PYTHON:-python3}"
 VENV="${NEBI_VENV:-.venv}"
 [ -x "$VENV/bin/python" ] || "$PY" -m venv "$VENV"
 "$VENV/bin/pip" install -q --upgrade pip
-"$VENV/bin/pip" install -e "nebi-lib[dev]" -e "nebi-cockpit[dev]" -e "nebi-cli[dev]" -e "nebi-voice[dev]"
+"$VENV/bin/pip" install -e "nebi-lib[dev]" -e "nebi-cockpit[dev]" -e "nebi-cli[dev]" -e "nebi-voice[dev]" -e "nebi-patch[dev]"
 for ext in ${NEBI_EXTRA_PACKAGES:-}; do "$VENV/bin/pip" install -q -e "$ext"; done

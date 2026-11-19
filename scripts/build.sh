@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PY="${PYTHON:-python3}"
 cd "$ROOT"
 rm -rf dist
-for pkg in nebi-lib nebi-cockpit nebi-cli nebi-voice; do
+for pkg in nebi-lib nebi-cockpit nebi-cli nebi-voice nebi-patch; do
     echo "== $pkg"
     "$PY" -m build --outdir dist "$pkg"
     rm -rf "$pkg/build"

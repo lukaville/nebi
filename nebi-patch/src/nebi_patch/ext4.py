@@ -132,7 +132,7 @@ class Ext4Image:
 
     def get_fs_stats(self) -> Ext4Stats:
         """Read superblock free space and inode counts via `dumpe2fs -h`."""
-        res = subprocess.run([self._dumpe2fs, "-h", str(self.path)], capture_output=True, text=True)
+        res = subprocess.run([self._dumpe2fs, "-h", str(self.path)], capture_output=True, text=True, check=False)
         if res.returncode != 0:
             raise RuntimeError(
                 f"dumpe2fs -h failed on {self.path.name} (exit {res.returncode}):\n"
@@ -166,7 +166,7 @@ class Ext4Image:
             if write:
                 cmd.append("-w")
             cmd.extend(["-f", str(script_path), str(self.path)])
-            res = subprocess.run(cmd, capture_output=True, text=True)
+            res = subprocess.run(cmd, capture_output=True, text=True, check=False)
             err_lines = _extract_debugfs_errors(res.stderr)
             if res.returncode != 0 or err_lines:
                 detail = "\n".join(err_lines) or res.stderr.strip() or res.stdout.strip()
@@ -182,6 +182,7 @@ class Ext4Image:
             [self._debugfs, "-R", f"stat {_quote_debugfs_arg(norm)}", str(self.path)],
             capture_output=True,
             text=True,
+            check=False,
         )
         err_lines = _extract_debugfs_errors(res.stderr)
         if res.returncode != 0 or any("File not found" in err for err in err_lines):
@@ -217,6 +218,7 @@ class Ext4Image:
             ],
             capture_output=True,
             text=True,
+            check=False,
         )
         err_lines = _extract_debugfs_errors(res.stderr)
         if res.returncode != 0 or err_lines or not dest_path.is_file():
@@ -482,7 +484,7 @@ class Ext4Image:
 
     def fsck(self) -> str:
         """Run `e2fsck -fn` to verify filesystem consistency without modifying the image."""
-        res = subprocess.run([self._e2fsck, "-fn", str(self.path)], capture_output=True, text=True)
+        res = subprocess.run([self._e2fsck, "-fn", str(self.path)], capture_output=True, text=True, check=False)
         if res.returncode != 0:
             raise RuntimeError(f"e2fsck -fn failed on {self.path.name} (exit {res.returncode}):\n{res.stdout}\n{res.stderr}")
         return res.stdout.strip()

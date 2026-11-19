@@ -70,7 +70,12 @@ def _fake_x86_64_elf() -> bytes:
 
 def _create_empty_ext4(path: Path, size_mb: int = 4) -> None:
     mke2fs = find_e2fs_tool("mke2fs")
-    res = subprocess.run([mke2fs, "-t", "ext4", "-q", "-F", str(path), f"{size_mb}M"], capture_output=True, text=True)
+    res = subprocess.run(
+        [mke2fs, "-t", "ext4", "-q", "-F", str(path), f"{size_mb}M"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     if res.returncode != 0:
         raise RuntimeError(f"mke2fs failed: {res.stderr}")
 

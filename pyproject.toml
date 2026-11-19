@@ -8,7 +8,18 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.ruff]
 line-length = 130
 target-version = "py310"
-src = ["nebi-lib/src", "nebi-lib/tests", "nebi-cockpit/src", "nebi-cockpit/tests", "nebi-cli/src", "nebi-cli/tests", "nebi-voice/src", "nebi-voice/tests"]
+src = [
+    "nebi-lib/src",
+    "nebi-lib/tests",
+    "nebi-cockpit/src",
+    "nebi-cockpit/tests",
+    "nebi-cli/src",
+    "nebi-cli/tests",
+    "nebi-voice/src",
+    "nebi-voice/tests",
+    "nebi-patch/src",
+    "nebi-patch/tests",
+]
 extend-exclude = ["nebi-lib/src/nebi/proto", "nebi-lib/proto", "**/build", "**/dist", "nebi-voice/src/nebi_voice/_vendor"]
 
 [tool.ruff.lint]
@@ -21,7 +32,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["nebi", "nebi_cockpit", "nebi_cli", "nebi_voice"]
+known-first-party = ["nebi", "nebi_cockpit", "nebi_cli", "nebi_voice", "nebi_patch"]
 
 [tool.ruff.lint.per-file-ignores]
 "*/tests/*" = ["PLR", "B", "S"]
@@ -31,7 +42,13 @@ known-first-party = ["nebi", "nebi_cockpit", "nebi_cli", "nebi_voice"]
 
 [tool.mypy]
 python_version = "3.10"
-files = ["nebi-lib/src/nebi", "nebi-cockpit/src/nebi_cockpit", "nebi-cli/src/nebi_cli", "nebi-voice/src/nebi_voice"]
+files = [
+    "nebi-lib/src/nebi",
+    "nebi-cockpit/src/nebi_cockpit",
+    "nebi-cli/src/nebi_cli",
+    "nebi-voice/src/nebi_voice",
+    "nebi-patch/src/nebi_patch",
+]
 exclude = ["nebi-lib/src/nebi/proto/", "nebi-voice/src/nebi_voice/_vendor/"]
 ignore_missing_imports = true
 check_untyped_defs = true

@@ -200,6 +200,7 @@ def _verify_file_in_remote_list(
     scheme: str,
     filename: str,
     expected_size: int,
+    *,
     timeout: float = 5.0,
     bearer_token: str | None = None,
 ) -> tuple[bool, str | None]:
@@ -264,6 +265,7 @@ async def preflight_and_create_zenoh_task(
 
     pmu_seen: dict[str, Any] = {}
     posture_seen: dict[str, Any] = {}
+    telemetry_ready = asyncio.Event()
 
     def _on_msg(topic: str, msg: Any, _seq: int) -> None:
         data = getattr(msg, "data", None)
@@ -277,12 +279,15 @@ async def preflight_and_create_zenoh_task(
         elif topic == "/status/robot/status":
             posture_seen["robot_state"] = int(data.robot_state)
             posture_seen["velocity_cms"] = int(data.velocity)
+        if pmu_seen and (not check_posture or posture_seen):
+            telemetry_ready.set()
 
     async with client_cls(host=host, ucp_port=ucp_port, ota_port=ota_port) as robot:
         robot.bus.subscribe_all(_on_msg)
-        deadline = time.monotonic() + 1.2
-        while time.monotonic() < deadline and (not pmu_seen or (check_posture and not posture_seen)):
-            await asyncio.sleep(0.1)
+        try:
+            await asyncio.wait_for(telemetry_ready.wait(), timeout=1.2)
+        except asyncio.TimeoutError:
+            pass
 
         if pmu_seen and not ignore_battery:
             soc = pmu_seen["soc"]

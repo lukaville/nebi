@@ -8,7 +8,7 @@ cd "$ROOT"
 "$VENV/bin/ruff" check .
 "$VENV/bin/mypy"
 "$PY" -m pytest -q tests                     # architecture / dependency rules
-for pkg in nebi-lib nebi-cockpit nebi-cli nebi-voice; do
+for pkg in nebi-lib nebi-cockpit nebi-cli nebi-voice nebi-patch; do
     echo "== $pkg"
     (cd "$ROOT/$pkg" && "$PY" -m pytest -q)
 done

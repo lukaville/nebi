@@ -18,7 +18,7 @@ except ModuleNotFoundError:  # Python 3.10: the tomli backport (installed with m
     tomllib = pytest.importorskip("tomli")
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGES = ("nebi-lib", "nebi-cockpit", "nebi-cli", "nebi-voice")
+PACKAGES = ("nebi-lib", "nebi-cockpit", "nebi-cli", "nebi-voice", "nebi-patch")
 
 
 def _project(pkg: str) -> dict:
@@ -44,10 +44,12 @@ def test_pyproject_license_metadata(pkg: str) -> None:
 def test_runtime_versions_come_from_metadata() -> None:
     import nebi
     import nebi_cli
+    import nebi_patch
     import nebi_voice
     from nebi_cockpit.app import APP_VERSION
 
     assert nebi.__version__ == _project("nebi-lib")["version"]
     assert nebi_cli.__version__ == _project("nebi-cli")["version"]
     assert nebi_voice.__version__ == _project("nebi-voice")["version"]
+    assert nebi_patch.__version__ == _project("nebi-patch")["version"]
     assert _project("nebi-cockpit")["version"] == APP_VERSION

@@ -1,10 +1,11 @@
 """Dependency rules of the monorepo, checked on the source (every import statement, including lazy ones inside
 functions and `if TYPE_CHECKING:` blocks):
 
-    nebi        -> (nothing of ours)
+    nebi          -> (nothing of ours)
     nebi_cockpit  -> nebi
     nebi_cli      -> nebi_cockpit, nebi
     nebi_voice    -> nebi (only in its extension adapter, lazily; the voice itself needs none of ours)
+    nebi_patch    -> nebi (only lazily for Zenoh V2 OTA & pre-flight checks; patching/verifying needs none of ours)
 
 Extensions (e.g. nebi_voice) live in their own packages and are only ever loaded through nebi's extension loader:
 no core package imports them.
@@ -27,12 +28,14 @@ PACKAGES = {
     "nebi_cockpit": ROOT / "nebi-cockpit" / "src" / "nebi_cockpit",
     "nebi_cli": ROOT / "nebi-cli" / "src" / "nebi_cli",
     "nebi_voice": ROOT / "nebi-voice" / "src" / "nebi_voice",
+    "nebi_patch": ROOT / "nebi-patch" / "src" / "nebi_patch",
 }
 FORBIDDEN = {
-    "nebi": {"nebi_cockpit", "nebi_cli", "nebi_voice"},
-    "nebi_cockpit": {"nebi_cli", "nebi_voice"},
-    "nebi_cli": {"nebi_voice"},
-    "nebi_voice": {"nebi_cockpit", "nebi_cli"},
+    "nebi": {"nebi_cockpit", "nebi_cli", "nebi_voice", "nebi_patch"},
+    "nebi_cockpit": {"nebi_cli", "nebi_voice", "nebi_patch"},
+    "nebi_cli": {"nebi_voice", "nebi_patch"},
+    "nebi_voice": {"nebi_cockpit", "nebi_cli", "nebi_patch"},
+    "nebi_patch": {"nebi_cockpit", "nebi_cli", "nebi_voice"},
 }
 WEB_STACK = {"fastapi", "starlette", "uvicorn"}
 
@@ -90,4 +93,10 @@ def test_nebi_cockpit_imports_without_nebi_cli() -> None:
 def test_nebi_voice_imports_without_nebi_lib() -> None:
     """The voice is usable standalone: only `nebi_voice.extension` touches nebi, and only inside functions."""
     code = "import sys; sys.modules['nebi'] = None\nimport nebi_voice, nebi_voice.extension, nebi_voice.cli\n"
+    subprocess.run([sys.executable, "-c", code], check=True, cwd=str(ROOT))
+
+
+def test_nebi_patch_imports_without_nebi_lib() -> None:
+    """The firmware patcher is usable standalone: `nebi` is only imported lazily for Zenoh OTA calls."""
+    code = "import sys; sys.modules['nebi'] = None\nimport nebi_patch, nebi_patch.cli, nebi_patch.uploader\n"
     subprocess.run([sys.executable, "-c", code], check=True, cwd=str(ROOT))

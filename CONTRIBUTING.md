@@ -9,7 +9,7 @@ One venv for the whole monorepo, at `nebi/.venv` (Python >= 3.10):
 
 ```bash
 cd nebi
-scripts/dev-setup.sh          # creates .venv and installs nebi, nebi-cockpit, nebi-cli, nebi-voice editable with [dev] extras
+scripts/dev-setup.sh          # creates .venv and installs nebi, nebi-cockpit, nebi-cli, nebi-voice, nebi-patch editable with [dev] extras
 ```
 
 Everything works against the built-in simulator, so you don't need a robot. `nebi-cockpit serve --sim` and `nebi up --sim`
@@ -43,7 +43,7 @@ scripts/check.sh              # ruff + mypy + architecture/licence tests + every
 
 ```bash
 scripts/clean.sh              # removes *.egg-info, __pycache__, tool caches, .DS_Store, dist/, build/ (never .venv)
-.venv/bin/pip install -q --no-deps -e nebi-lib -e nebi-cockpit -e nebi-cli -e nebi-voice   # re-register the editable installs
+.venv/bin/pip install -q --no-deps -e nebi-lib -e nebi-cockpit -e nebi-cli -e nebi-voice -e nebi-patch   # re-register the editable installs
 ```
 
 Run it before publishing a release or creating the git repository.
@@ -52,7 +52,7 @@ Run it before publishing a release or creating the git repository.
 
 `LICENSE` and `NOTICE` live at the root. Each package keeps identical copies, because wheels can only include
 license files from inside the package directory. `tests/test_licensing.py` checks that the copies match the root
-files. Edit the root files, then copy them: `for p in nebi-lib nebi-cockpit nebi-cli nebi-voice; do cp LICENSE NOTICE $p/; done`.
+files. Edit the root files, then copy them: `for p in nebi-lib nebi-cockpit nebi-cli nebi-voice nebi-patch; do cp LICENSE NOTICE $p/; done`.
 
 ## CI
 
@@ -80,6 +80,7 @@ project, so each package publishes from its own GitHub environment:
 | `nebi-cockpit` | `lukaville` | `nebi` | `publish.yml` | `pypi-nebi-cockpit` | `testpypi-nebi-cockpit` |
 | `nebi-cli` | `lukaville` | `nebi` | `publish.yml` | `pypi-nebi-cli` | `testpypi-nebi-cli` |
 | `nebi-voice` | `lukaville` | `nebi` | `publish.yml` | `pypi-nebi-voice` | `testpypi-nebi-voice` |
+| `nebi-patch` | `lukaville` | `nebi` | `publish.yml` | `pypi-nebi-patch` | `testpypi-nebi-patch` |
 
 Add each row as a *pending publisher* on pypi.org (*Your account → Publishing*), and on test.pypi.org with the
 TestPyPI environment. The GitHub environments already exist (*Settings → Environments*; optionally require a
