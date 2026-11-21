@@ -74,8 +74,8 @@ def _on_status_robot_status(t: RobotTelemetrySnapshot, d: Any) -> None:
     t.pitch_deg = round(int(d.pitch_angle) / 10.0, 1)
     t.gimbal_pitch_deg = round(int(d.gimbal_angle) / 10.0, 1)
     t.roll_deg = round(int(d.roll_angle) / 10.0, 1)
-    t.height_cm = int(d.height)
-    t.obstacle_cm = int(d.obstacle_dis)
+    t.height_cm = round(int(d.height) / 10.0, 1)  # firmware reports height in 0.1 cm
+    t.obstacle_cm = int(d.obstacle_dis)  # cm; 0xFFFF = invalid
     t.sport_mode = int(d.sport_mode)
     t.trip_odom_m = round(float(d.trip_odom_dis), 2)
     t.session_odom_m = round(float(d.session_odom_dis), 2)
@@ -85,10 +85,11 @@ def _on_status_robot_status(t: RobotTelemetrySnapshot, d: Any) -> None:
 def _on_status_pmu_osd_status(t: RobotTelemetrySnapshot, d: Any) -> None:
     t.battery_soc = int(d.soc)
     pbits = int(d.power_bits)
-    # `power_bits` as observed on a live LZ110:
-    #   bit 0 (0x01) = battery present / normal discharge (`power_bits == 0x01` when unplugged on battery)
-    #   bit 1 (0x02) = charging (external USB-PD / dock charger active)
-    #   bit 2 (0x04) = docked on charging station
+    # `power_bits` (official protocol):
+    #   bit 0 (0x01) = input_present (external power input detected)
+    #   bit 1 (0x02) = is_charging
+    #   bit 2 (0x04) = charging_contact_mos_enabled (bottom dock charging contact path)
+    #   bit 3 (0x08) = type_c_mos_enabled (USB-C power path)
     t.charging = bool(pbits & 0x02)
     t.docked = bool(pbits & 0x04)
 
@@ -129,17 +130,23 @@ def _on_status_camera_capture_controls(t: RobotTelemetrySnapshot, d: Any) -> Non
 
 @topic_decoder("/status/tracking/status")
 def _on_status_tracking_status(t: RobotTelemetrySnapshot, d: Any) -> None:
-    t.tracking_active = int(d.status) > 0
+    # status: 0=idle, 1=tracking, 2=target lost, 255=error
+    t.tracking_active = int(d.status) == 1
     t.locked_target_id = int(d.tracking_id)
 
 
 @topic_decoder("/data/tracking/target_data")
 def _on_data_tracking_target_data(t: RobotTelemetrySnapshot, d: Any) -> None:
     targets: list[DetectedTarget] = []
-    for item in d.targets:
+    raw_targets = list(d.targets)
+    count = int(getattr(d, "target_count", 0))
+    if 0 < count < len(raw_targets):
+        raw_targets = raw_targets[:count]
+    for item in raw_targets:
         tid = int(item.id)
         label = "pet" if (int(item.reserved_state_flags) & 1) else "person"
-        locked = int(item.target_state) == 2 or (t.tracking_active and tid == t.locked_target_id)
+        # target_state: 0=candidate, 1=tracked, 2=lost
+        locked = int(item.target_state) == 1 or (t.tracking_active and tid == t.locked_target_id)
         targets.append(
             DetectedTarget(
                 target_id=tid,
@@ -196,8 +203,15 @@ def _epoch_ms(v: int) -> bool:
 
 
 def hms_alert(code: int, instance: int, *, module_id: int = 0, source: str = "snapshot", ts: float | None = None) -> HmsAlert:
-    """Decode one fault into an `HmsAlert` via the fault table (`catalog/faults.py`)."""
-    decoded = CATALOG.decode_hms(int(code), int(instance))
+    """Decode one fault into an `HmsAlert` via the fault table (`catalog/faults.py`).
+
+    Supports both full 32-bit fault codes (`0xF0MMNNNN`) and split `(module_id, 16-bit fault_code)`
+    per the official SDK formula `complete_code = (module_id << 16) | fault_code`.
+    """
+    full_code = int(code) & 0xFFFFFFFF
+    if 0 < full_code <= 0xFFFF and int(module_id) > 0:
+        full_code = ((int(module_id) & 0xFFFF) << 16) | full_code
+    decoded = CATALOG.decode_hms(full_code, int(instance))
     rk = decoded["recovery_kind"]
     return HmsAlert(
         code=decoded["code"],
@@ -313,11 +327,16 @@ def _on_status_nm_net_online_notify(t: RobotTelemetrySnapshot, d: Any) -> None:
 
 @topic_decoder("/status/storage/status")
 def _on_status_storage_status(t: RobotTelemetrySnapshot, d: Any) -> None:
-    total_mb = int(d.sd_total_space) or int(d.internal_total_space)
-    used_mb = int(d.sd_used_space) or int(d.internal_used_space)
-    if total_mb > 0:
-        t.sd_total_gb = round(total_mb / 1024.0, 1)
-        t.sd_free_gb = round(max(0, total_mb - used_mb) / 1024.0, 1)
+    # StorageStatus capacities are reported in KiB (1024 bytes).
+    if int(getattr(d, "storage_type", 1)) == 0:
+        total_kib = int(d.internal_total_space) or int(d.sd_total_space)
+        used_kib = int(d.internal_used_space) if int(d.internal_total_space) else int(d.sd_used_space)
+    else:
+        total_kib = int(d.sd_total_space) or int(d.internal_total_space)
+        used_kib = int(d.sd_used_space) if int(d.sd_total_space) else int(d.internal_used_space)
+    if total_kib > 0:
+        t.sd_total_gb = round(total_kib / 1_048_576.0, 1)
+        t.sd_free_gb = round(max(0, total_kib - used_kib) / 1_048_576.0, 1)
 
 
 @topic_decoder("/status/ota/upgrade_progress")

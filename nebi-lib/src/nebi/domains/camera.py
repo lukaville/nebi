@@ -267,6 +267,13 @@ class CameraController(DomainController):
             eis_level=int(level) if enabled else 0,
         )
 
+    async def set_recording_audio(self, enabled: bool) -> int:
+        """Enable or mute audio capture for subsequent MP4 recordings (`CameraCmdType.RECORD_AUDIO`, bit 11).
+
+        Takes effect on the next recording; confirm state via `/status/mic/status` (`record_audio_enabled`).
+        """
+        return self._publish_unified(CameraCmdType.RECORD_AUDIO, reserved=1 if enabled else 0)
+
     async def set_horizon_lock(self, enabled: bool) -> int:
         """Horizon lock is NOT implemented by this firmware's camera pipeline: raises `CAMERA_HORIZON_LOCK_UNSUPPORTED`."""
         raise NebiError(

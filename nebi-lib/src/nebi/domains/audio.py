@@ -152,6 +152,21 @@ class AudioController(DomainController):
 
     # --- Wireless BLE Microphones (`/cmd/mic/*`) ---
 
+    @staticmethod
+    def _encode_mac6(mac: str | bytes) -> bytes:
+        """Encode a Bluetooth MAC (`AA:BB:CC:DD:EE:FF`, `AABBCCDDEEFF`, 6 raw bytes, or empty) into 6 raw bytes."""
+        if not mac:
+            return b"\x00" * 6
+        if isinstance(mac, (bytes, bytearray)):
+            raw = bytes(mac)
+            if len(raw) == 6:
+                return raw
+            raise ValueError(f"Bluetooth MAC must be 6 raw bytes, got {len(raw)} bytes")
+        cleaned = mac.strip().replace(":", "").replace("-", "")
+        if len(cleaned) != 12:
+            raise ValueError(f"Invalid Bluetooth MAC address: {mac!r}")
+        return bytes.fromhex(cleaned)
+
     async def scan_wireless_mics(self, start: bool = True, duration_s: int = 8, timeout: float = 2.0) -> dict[str, Any]:
         return await self._request_ints(
             "/cmd/mic/scan_req",
@@ -162,22 +177,37 @@ class AudioController(DomainController):
             duration_s=int(duration_s),
         )
 
-    async def select_mic_source(self, kind: int, mac: str = "", timeout: float = 2.0) -> dict[str, Any]:
-        """Select audio input (`kind`: `0=built-in array`, `1=wireless BLE mic`)."""
+    async def request_saved_mics(self, timeout: float = 2.0) -> dict[str, Any]:
+        """Ask the robot to re-push `/status/mic/saved_list` (`mic_saved_list_rsp` only acknowledges receipt)."""
+        return await self._request_ints(
+            "/cmd/mic/saved_list_req",
+            "/cmd/mic/saved_list_rsp",
+            ("ret_code",),
+            timeout=timeout,
+        )
+
+    async def select_mic_source(self, kind: int, mac: str | bytes = "", timeout: float = 5.0) -> dict[str, Any]:
+        """Select video audio source (`kind`: `0=disable capture`, `1=built-in mic`, `2=Bluetooth mic`).
+
+        For `kind=2`, `mac` is the 6-byte Bluetooth address (string `"AA:BB:CC:DD:EE:FF"` or 6 raw bytes).
+        For `kind=0/1`, 6 zero bytes are sent as required by the official protocol.
+        """
+        mac_bytes = self._encode_mac6(mac) if int(kind) == 2 else b"\x00" * 6
         return await self._request_ints(
             "/cmd/mic/source_select_req",
             "/cmd/mic/source_select_rsp",
             ("ret_code",),
             timeout=timeout,
             kind=int(kind),
-            mac=mac.encode("utf-8"),
+            mac=mac_bytes,
         )
 
-    async def forget_wireless_mic(self, mac: str, timeout: float = 2.0) -> dict[str, Any]:
+    async def forget_wireless_mic(self, mac: str | bytes, timeout: float = 2.0) -> dict[str, Any]:
+        """Remove a saved Bluetooth microphone by 6-byte MAC address."""
         return await self._request_ints(
             "/cmd/mic/forget_req",
             "/cmd/mic/forget_rsp",
             ("ret_code", "removed_count"),
             timeout=timeout,
-            macs=mac.encode("utf-8"),
+            macs=self._encode_mac6(mac),
         )

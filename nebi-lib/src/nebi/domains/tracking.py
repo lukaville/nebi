@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import struct
 from typing import Any
 
 from nebi.domains._base import DomainController
@@ -50,18 +51,49 @@ class TrackingController(DomainController):
         sub_mode: CameraSubMode | int = CameraSubMode.FOLLOW_TRAIL,
         distance_m: float | None = None,
         orbit_speed: float | None = None,
+        *,
+        parallel: bool = False,
+        angle_deg: int = 0,
+        orbit_direction: int = 0,
+        routing: int = 0,
         timeout: float = 2.0,
     ) -> dict[str, Any]:
-        """Switch follow sub-mode (`TRAIL=1, PARALLEL=2, LEAD=3, ORBIT=4, SPOTLIGHT=5`) and optional params."""
-        ack = await request_mission(self._bus, int(MissionId.CAMERA), int(sub_mode), timeout=timeout)
-        if distance_m is not None:
-            await self.update_tracking_param(param_id=1, value=distance_m, timeout=timeout)
-        if orbit_speed is not None:
-            await self.update_tracking_param(param_id=2, value=orbit_speed, timeout=timeout)
-        return ack
+        """Switch follow/spotlight sub-mode and optional 9-byte Follow `mode_params`.
+
+        Per official SDK spec for Follow (`mission_id=1, sub_mode=2`):
+        `mode_params[0]=0 (trailing) | 1 (parallel)`, `[1..4]=f32 distance_m`, `[5..6]=i16 angle_deg`,
+        `[7]=orbit_direction`, `[8]=routing`.
+        Note: `/cmd/tracking/param_update_req` `param_id=1` is reference human height (0.1–3.0 m) and `param_id=2`
+        is the UWB follow switch (0.0/1.0) — use `set_reference_height()` / `set_uwb_follow()` for those.
+        `orbit_speed` is accepted for backward compatibility and ignored (not a tracking parameter).
+        """
+        del orbit_speed
+        mode_params = b""
+        if distance_m is not None or parallel or angle_deg or orbit_direction or routing:
+            style = 1 if (parallel or int(sub_mode) == int(CameraSubMode.FOLLOW_PARALLEL)) else 0
+            dist = float(distance_m) if distance_m is not None else 2.0
+            mode_params = struct.pack(
+                "<BfhBB",
+                style,
+                dist,
+                int(angle_deg),
+                int(orbit_direction) & 0xFF,
+                int(routing) & 0xFF,
+            )
+        return await request_mission(
+            self._bus, int(MissionId.CAMERA), int(sub_mode), mode_params=mode_params, timeout=timeout
+        )
+
+    async def set_reference_height(self, height_m: float, timeout: float = 2.0) -> dict[str, Any]:
+        """Set reference human height for visual tracking (`param_id=1`, clamped to 0.1–3.0 m)."""
+        return await self.update_tracking_param(param_id=1, value=max(0.1, min(3.0, float(height_m))), timeout=timeout)
+
+    async def set_uwb_follow(self, enabled: bool, timeout: float = 2.0) -> dict[str, Any]:
+        """Enable or disable UWB remote-controller positioning in Follow (`param_id=2`, 0.0 or 1.0)."""
+        return await self.update_tracking_param(param_id=2, value=1.0 if enabled else 0.0, timeout=timeout)
 
     async def switch_target_type(self, target_type: int, timeout: float = 2.0) -> dict[str, Any]:
-        """Switch detector class filter (`0=person+pet`, `1=person`, `2=pet`)."""
+        """Switch detector target type (`TrackingStatus.target_type`: `0=person`, `1=dog`)."""
         return await self._request_ints(
             "/cmd/tracking/model_switch_cmd",
             "/cmd/tracking/model_switch_cmd_ack",

@@ -368,7 +368,7 @@ def _cmd_mic_scan_req(robot: MockNebiRobot, _d: Any, seq: int) -> None:
         m = cls()
         m.data.scanning = 0
         e = m.data.entries.add()
-        e.mac = b"AA:BB:CC:11:22:33"
+        e.mac = bytes.fromhex("AABBCC112233")
         e.name = b"SimMic-01"
         e.rssi = -48
         e.model_id = 1
@@ -376,10 +376,16 @@ def _cmd_mic_scan_req(robot: MockNebiRobot, _d: Any, seq: int) -> None:
         robot.bus.publish_proto("/status/mic/scan_result", m)
 
 
+@_handler("/cmd/mic/saved_list_req", needs_data=False)
+def _cmd_mic_saved_list_req(robot: MockNebiRobot, _d: Any, seq: int) -> None:
+    robot.bus.publish("/cmd/mic/saved_list_rsp", seq_num=seq, ret_code=0)
+
+
 @_handler("/cmd/mic/source_select_req", needs_data=True)
 def _cmd_mic_source_select_req(robot: MockNebiRobot, d: Any, seq: int) -> None:
     robot.active_mic_kind = int(d.kind)
-    robot.active_mic_mac = bytes(d.mac).decode("utf-8", errors="replace")
+    raw = bytes(d.mac)
+    robot.active_mic_mac = ":".join(f"{b:02X}" for b in raw[:6]) if len(raw) == 6 else raw.decode("utf-8", errors="replace")
     robot.bus.publish("/cmd/mic/source_select_rsp", seq_num=seq, ret_code=0)
 
 

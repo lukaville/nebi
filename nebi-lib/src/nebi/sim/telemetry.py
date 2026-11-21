@@ -27,7 +27,7 @@ def publish_fast_telemetry(robot: MockNebiRobot) -> None:
         pitch_angle=round(robot.pitch_deg * 10.0),
         gimbal_angle=round(robot.gimbal_pitch_deg * 10.0),
         roll_angle=round(robot.roll_deg * 10.0),
-        height=round(robot.body_height_cm),
+        height=round(robot.body_height_cm * 10.0),  # 0.1 cm units per official protocol
         sport_mode=robot.speed_gear,
         abnormal_flags=1 if robot.hms_active_codes else 0,
         session_odom_dis=float(robot.session_odom_m),
@@ -45,7 +45,8 @@ def publish_fast_telemetry(robot: MockNebiRobot) -> None:
             t.center_pos_y = float(b["cy"])
             t.width = float(b["w"])
             t.height = float(b["h"])
-            t.target_state = 2 if (robot.tracking_enabled and int(b["id"]) == robot.locked_target_id) else 1
+            # target_state: 0=candidate, 1=tracked, 2=lost
+            t.target_state = 1 if (robot.tracking_enabled and int(b["id"]) == robot.locked_target_id) else 0
             t.reserved_state_flags = 1 if b["kind"] == "pet" else 0
         robot.bus.publish_proto("/data/tracking/target_data", msg)
 
@@ -106,11 +107,11 @@ def publish_slow_telemetry(robot: MockNebiRobot) -> None:
         rssi=-39,
         connection_status=2 if robot.wifi_mode == 1 else 1,
     )
-    used_mb = max(120, int(sum(a.size_bytes for a in robot.media_files.values()) / (1024 * 1024)) + 4200)
+    used_kib = max(120 * 1024, int(sum(a.size_bytes for a in robot.media_files.values()) // 1024) + 4200 * 1024)
     robot.bus.publish(
         "/status/storage/status",
-        sd_used_space=used_mb,
-        sd_total_space=65536,
+        sd_used_space=used_kib,
+        sd_total_space=64 * 1024 * 1024,  # 64 GiB in KiB
         storage_type=1,
         sd_status=1,
     )

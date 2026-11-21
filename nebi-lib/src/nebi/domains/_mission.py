@@ -18,13 +18,16 @@ async def request_mission(
     *,
     mode_params: bytes = b"",
     timeout: float = 2.0,
-) -> dict[str, int]:
+) -> dict[str, Any]:
     """Switch the scheduler mission; returns the ack fields (result_code 0 = accepted)."""
     kw: dict[str, Any] = {"version": 1, "mission_id": int(mission_id), "sub_mode": int(sub_mode)}
     if mode_params:
         kw["mode_params"] = mode_params
     rsp = await bus.request("/cmd/mission/request", "/cmd/mission/request_ack", timeout=timeout, **kw)
-    return int_fields(rsp.data, "result_code", "current_mission_id", "current_sub_mode")
+    ack: dict[str, Any] = int_fields(rsp.data, "result_code", "current_mission_id", "current_sub_mode")
+    if rsp.data.HasField("pitch_handoff"):
+        ack["pitch_handoff_rad"] = float(rsp.data.pitch_handoff.held_pitch_rad)
+    return ack
 
 
 def require_accepted(ack: dict[str, Any], what: str) -> dict[str, Any]:

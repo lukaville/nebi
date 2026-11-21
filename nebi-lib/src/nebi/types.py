@@ -128,6 +128,7 @@ class CameraCmdType(IntFlag):
     HIGHLIGHT_TAG = 0x0100
     STORAGE_TARGET = 0x0200
     HORIZON_LOCK = 0x0400
+    RECORD_AUDIO = 0x0800  # toggle recording audio via reserved=0/1 (applies to next recording)
 
 
 class StuntDirection(IntEnum):
@@ -200,14 +201,21 @@ JOY_ROLL_SHIFT = 39  # body roll/tilt, 6 bits
 JOY_HEIGHT_SHIFT = 45  # standing body height, 5 bits (0 = crouch, 31 = tall)
 JOY_JUMP_BIT = 50
 JOY_STUNT_SHIFT = 51  # 3 bits
-JOY_POSTURE_SHIFT = 54  # 2 bits
-JOY_GEAR_SHIFT = 56  # 2 bits
-JOY_ESTOP_BIT = 58  # edge-toggled
-JOY_STAND_FOLD_BIT = 59  # LATCHED: 0 -> 1 = fold, 1 -> 0 = stand (see MotionController)
-JOY_ACTION_BIT = 60
-JOY_ROLL_MODE_BIT = 61
-JOY_TURN_AROUND_BIT = 62
-JOY_B63_BIT = 63  # gamepad_source; on UCP :9007 the robot's app bridge reads it as no_liveview_flag
+JOY_POSTURE_SHIFT = 54  # 2 bits (official SDK: max_speed / speed gear)
+JOY_GEAR_SHIFT = 56  # 2 bits (official SDK: nav_flag: 0=off, 1=obstacle avoidance, 2=auto jump)
+JOY_ESTOP_BIT = 58  # edge-toggled (official SDK: ispause)
+JOY_STAND_FOLD_BIT = 59  # LATCHED: 0 -> 1 = fold, 1 -> 0 = stand (official SDK: islock)
+JOY_ACTION_BIT = 60  # official SDK: pitch_input_is_stick (0=angle ref, 1=instantaneous pitch stick)
+JOY_ROLL_MODE_BIT = 61  # official SDK: third_person_mode
+JOY_TURN_AROUND_BIT = 62  # official SDK: jump_mode (0=vertical jump, 1=standing long jump with jump_cmd=1)
+JOY_B63_BIT = 63  # official SDK: no_liveview (preview switch, inverted)
+
+# Official SDK bit-name aliases (same bit positions as the legacy JOY_* names above).
+JOY_MAX_SPEED_SHIFT = JOY_POSTURE_SHIFT
+JOY_NAV_FLAG_SHIFT = JOY_GEAR_SHIFT
+JOY_PITCH_IS_STICK_BIT = JOY_ACTION_BIT
+JOY_THIRD_PERSON_BIT = JOY_ROLL_MODE_BIT
+JOY_JUMP_MODE_BIT = JOY_TURN_AROUND_BIT
 
 JOY_STICK11_MASK = 0x7FF
 JOY_STICK11_CENTER = 1000
@@ -479,7 +487,7 @@ class RobotTelemetrySnapshot:
     pitch_deg: float = 0.0
     roll_deg: float = 0.0
     gimbal_pitch_deg: float = 0.0
-    height_cm: int = 11
+    height_cm: float = 11.0
     obstacle_cm: int = 250
     sport_mode: int = 2
     trip_odom_m: float = 0.0
@@ -511,7 +519,7 @@ class RobotTelemetrySnapshot:
     pro_mode: bool = False
     shutter_idx: int = 0
     iso_idx: int = 0
-    ev_idx: int = 6
+    ev_idx: int = 9  # 0..18, where 9 = 0 EV per official protocol
     wb_idx: int = 0
     pre_record_enabled: bool = False
     vt_streaming: bool = True

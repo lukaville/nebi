@@ -221,7 +221,7 @@ class MotionController(DomainController):
                 pass
             self._stream_task = None
 
-    def _trigger_pulse(self, **overrides: Any) -> int:
+    def _trigger_pulse(self, *, ticks: int = 5, **overrides: Any) -> int:
         st = JoystickState(
             lx=self.joystick.lx,
             ly=self.joystick.ly,
@@ -239,7 +239,7 @@ class MotionController(DomainController):
         for k, v in overrides.items():
             setattr(st, k, v)
         self._pulse_override = st
-        self._pulse_ticks = 5
+        self._pulse_ticks = max(1, int(ticks))
         return self.send_joystick_once(st)
 
     async def _ensure_baseline_sent(self) -> None:
@@ -331,17 +331,20 @@ class MotionController(DomainController):
             seq = self.send_joystick_once(self._pulse_override or self.joystick)
         return seq
 
-    async def jump(self, height: float | None = None) -> int:
-        """Trigger a jump (`bit 50` `jump_trigger`). The firmware jump height is fixed; `height` is accepted for API
-        compatibility and ignored."""
-        return self._trigger_pulse(jump_trigger=True)
+    async def jump(self, height: float | None = None, *, long_jump: bool = False) -> int:
+        """Trigger a jump (`bit 50` `jump_cmd`, held 10 frames at 50 Hz per official spec).
+
+        Set `long_jump=True` to also assert `bit 62` (`jump_mode`) for a standing long jump (requires speed < 0.1 m/s).
+        The firmware jump height is fixed; `height` is accepted for API compatibility and ignored.
+        """
+        return self._trigger_pulse(ticks=10, jump_trigger=True, turn_around=bool(long_jump))
 
     async def flip(self, direction: StuntDirection | int = StuntDirection.BACK_FLIP) -> int:
-        """Trigger 4-way acrobatic flip (`FRONT_FLIP=1`, `BACK_FLIP=2`, `LEFT_FLIP=3`, `RIGHT_FLIP=4`)."""
-        return self._trigger_pulse(stunt=StuntDirection(int(direction)))
+        """Trigger 4-way acrobatic flip (`FRONT_FLIP=1`, `BACK_FLIP=2`, `LEFT_FLIP=3`, `RIGHT_FLIP=4`), held 9 frames."""
+        return self._trigger_pulse(ticks=9, stunt=StuntDirection(int(direction)), jump_trigger=False, turn_around=False)
 
     async def turn_around(self) -> int:
-        """Trigger automatic 180-degree quick turn (`turn_around = True`)."""
+        """Legacy helper pulsing bit 62 (official SDK defines bit 62 as `jump_mode` for standing long jump)."""
         return self._trigger_pulse(turn_around=True)
 
     async def set_speed_gear(self, gear: SpeedGear | int) -> int:
@@ -359,8 +362,34 @@ class MotionController(DomainController):
         """Switch top-level `Scheduler` mission (`1=Camera, 2=Game, 3=Pet, 4=SelfCalibration, 10=Qa, 11=RealRl`)."""
         return await request_mission(self._bus, int(mission_id), int(sub_mode), mode_params=mode_params, timeout=timeout)
 
-    async def start_manual_camera_mode(self) -> dict[str, Any]:
-        return await self.set_mission(MissionId.CAMERA, int(CameraSubMode.MANUAL))
+    async def start_manual_camera_mode(
+        self,
+        *,
+        drive_mode: int = 0,
+        speed_radius_priority: int = 0,
+        control_orientation: int = 0,
+        timeout: float = 2.0,
+    ) -> dict[str, Any]:
+        """Enter Camera Manual mode (`mission_id=1, sub_mode=0`) with optional 9-byte `mode_params`.
+
+        Per official spec: `mode_params[0]=drive_mode` (0=chassis steer, 1=chassis follows gimbal),
+        `[2]=speed_radius_priority`, `[4]=control_orientation` (0=unspecified, 1=portrait, 2=landscape).
+        Portrait (`1`) forces `drive_mode=0`; pass `drive_mode=1, control_orientation=2` for gimbal-follow driving.
+        """
+        params = b""
+        if drive_mode or speed_radius_priority or control_orientation:
+            params = bytes([
+                int(drive_mode) & 0xFF,
+                0,
+                int(speed_radius_priority) & 0xFF,
+                0,
+                int(control_orientation) & 0xFF,
+                0,
+                0,
+                0,
+                0,
+            ])
+        return await self.set_mission(MissionId.CAMERA, int(CameraSubMode.MANUAL), mode_params=params, timeout=timeout)
 
     async def start_ego_mode(self, *, force: bool = False, confirm_timeout: float = 2.0) -> dict[str, Any]:
         """Enter pet / ego interaction mode (`MissionId.CAMERA`, `CameraSubMode.EGO_INTERACTION` = 6).

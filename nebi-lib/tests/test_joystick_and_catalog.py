@@ -156,5 +156,91 @@ def test_catalog_loaded_counts_and_protobuf_classes() -> None:
     assert int(hms_from_int["code"], 16) == 0xF0010012
     assert "Log export" in hms_from_int["message_en"] and hms_from_int["recovery_kind"] == "auto"
     assert CATALOG.decode_hms("0xF00A0001", 768)["message_en"].endswith("(main controller)")
+    assert CATALOG.decode_hms(0xF00A0002)["message_en"].startswith("Firmware upgrade in progress")
+    assert CATALOG.decode_hms(0xF0030301)["message_en"].startswith("Depth camera timeout")
+    assert CATALOG.decode_hms(0xF0030403)["message_en"].startswith("Flip failed")
     assert CATALOG.decode_hms(0xF0039999)["message_en"] == "Locomotion fault 0xF0039999"
     assert CATALOG.decode_hms(0xF0FF0001)["message_en"].startswith("Unknown fault")
+
+
+def test_official_sdk_protocol_decoders_and_helpers() -> None:
+    from types import SimpleNamespace
+
+    from nebi.domains.audio import AudioController
+    from nebi.telemetry import apply_topic_message, hms_alert
+    from nebi.types import CameraCmdType, RobotTelemetrySnapshot
+
+    assert int(CameraCmdType.RECORD_AUDIO) == 0x0800
+
+    # Audio MAC encoding: 6 raw bytes for Bluetooth MACs, 6 zero bytes for empty
+    assert AudioController._encode_mac6("") == b"\x00" * 6
+    assert AudioController._encode_mac6("AA:BB:CC:11:22:33") == bytes.fromhex("AABBCC112233")
+    assert AudioController._encode_mac6("aabbcc112233") == bytes.fromhex("AABBCC112233")
+    assert AudioController._encode_mac6(b"\x01\x02\x03\x04\x05\x06") == b"\x01\x02\x03\x04\x05\x06"
+
+    # HMS split (module_id, 16-bit fault_code) reconstruction: (0xF003 << 16) | 0x0301 == 0xF0030301
+    alert = hms_alert(0x0301, 0, module_id=0xF003)
+    assert alert.code == "0xF0030301"
+    assert "Depth camera timeout" in alert.message_en
+
+    snap = RobotTelemetrySnapshot()
+
+    # RobotStatus.height is in 0.1 cm
+    apply_topic_message(
+        snap,
+        "/status/robot/status",
+        SimpleNamespace(
+            robot_state=3,
+            velocity=150,
+            pitch_angle=-12,
+            gimbal_angle=25,
+            roll_angle=5,
+            height=110,
+            obstacle_dis=85,
+            sport_mode=2,
+            trip_odom_dis=12.34,
+            session_odom_dis=1.23,
+        ),
+    )
+    assert snap.height_cm == 11.0
+    assert snap.velocity_mps == 1.5
+
+    # StorageStatus capacities are in KiB
+    apply_topic_message(
+        snap,
+        "/status/storage/status",
+        SimpleNamespace(
+            storage_type=1,
+            sd_total_space=64 * 1024 * 1024,
+            sd_used_space=16 * 1024 * 1024,
+            internal_total_space=8 * 1024 * 1024,
+            internal_used_space=2 * 1024 * 1024,
+        ),
+    )
+    assert snap.sd_total_gb == 64.0
+    assert snap.sd_free_gb == 48.0
+
+    # TrackingStatus.status: 1=tracking, 2=lost, 255=error; target_state: 0=candidate, 1=tracked, 2=lost
+    apply_topic_message(snap, "/status/tracking/status", SimpleNamespace(status=2, tracking_id=5))
+    assert snap.tracking_active is False
+    apply_topic_message(snap, "/status/tracking/status", SimpleNamespace(status=255, tracking_id=255))
+    assert snap.tracking_active is False
+    apply_topic_message(snap, "/status/tracking/status", SimpleNamespace(status=1, tracking_id=7))
+    assert snap.tracking_active is True
+
+    apply_topic_message(
+        snap,
+        "/data/tracking/target_data",
+        SimpleNamespace(
+            target_count=3,
+            targets=[
+                SimpleNamespace(id=1, center_pos_x=0.2, center_pos_y=0.5, width=0.1, height=0.3, target_state=0, reserved_state_flags=0),
+                SimpleNamespace(id=7, center_pos_x=0.5, center_pos_y=0.5, width=0.2, height=0.4, target_state=1, reserved_state_flags=0),
+                SimpleNamespace(id=9, center_pos_x=0.8, center_pos_y=0.5, width=0.1, height=0.2, target_state=2, reserved_state_flags=0),
+            ],
+        ),
+    )
+    by_id = {t.target_id: t for t in snap.targets}
+    assert by_id[1].locked is False
+    assert by_id[7].locked is True
+    assert by_id[9].locked is False

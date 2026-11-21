@@ -55,8 +55,8 @@ FAULTS: dict[int, FaultSpec] = {
     0xF0010004: FaultSpec("Error", AUTO, "Charging cable plugged in; standing up is blocked."),
     0xF0010005: FaultSpec("Warning", AUTO, "Battery under 25%; jumps are restricted."),
     0xF0010006: FaultSpec("Warning", AUTO, "Battery under 10%; driving is restricted."),
-    0xF0010007: FaultSpec("Error", USER, "Recording stopped: no free storage."),
-    0xF0010008: FaultSpec("Error", AUTO, "Recording stopped: SD card error."),
+    0xF0010007: FaultSpec("Error", USER, "Available space on current storage is below 1 GiB."),
+    0xF0010008: FaultSpec("Error", AUTO, "SD card removed during recording."),
     0xF0010009: FaultSpec("Error", INFO, "Robot is powering off."),
     0xF0010010: FaultSpec("Error", AUTO, "Cooling fan fault; restart the robot."),
     0xF0010011: FaultSpec("Error", AUTO, "Robot is too hot; let it cool down."),
@@ -74,15 +74,16 @@ FAULTS: dict[int, FaultSpec] = {
     0xF0030204: FaultSpec("Fatal", INFO, "Motor fault."),
     0xF0030205: FaultSpec("Fatal", INFO, "Joint is blocked."),
     0xF0030206: FaultSpec("Fatal", INFO, "Joint is blocked."),
-    0xF0030401: FaultSpec("Info", INFO, "Robot is tilted."),
-    0xF0030402: FaultSpec("Info", INFO, "Drive command was interrupted."),
-    0xF0030403: FaultSpec("Warning", INFO, "Poor traction; drive on flat, dry ground with suitable wheels."),
+    0xF0030301: FaultSpec("Error", AUTO, "Depth camera timeout (no depth frames received)."),
+    0xF0030401: FaultSpec("Info", INFO, "Robot tipped over."),
+    0xF0030402: FaultSpec("Info", INFO, "Control lost (ctrl_cmd stream interrupted)."),
+    0xF0030403: FaultSpec("Warning", INFO, "Flip failed (abnormal attitude or fallen after landing)."),
     0xF0031001: FaultSpec("Fatal", CONFIRM, "Gimbal could not return home; check for obstructions."),
     0xF0031002: FaultSpec("Fatal", USER, "Legs could not return home; check for obstructions."),
     0xF0031003: FaultSpec("Fatal", USER, "Stand-up failed; fold the robot fully and free the legs."),
     0xF0031004: FaultSpec("Error", INFO, "Wheel problem; inspect the wheels."),
     0xF0031005: FaultSpec("Fatal", USER, "Robot is not activated."),
-    0xF0031006: FaultSpec("Warning", INFO, "Payload is too heavy."),
+    0xF0031006: FaultSpec("Warning", INFO, "Abnormal device inertia (gimbal sweep exceeded threshold; check payload)."),
     0xF0031007: FaultSpec("Error", CONFIRM, "Legs could not return home; fold the robot on flat ground and retry."),
     # Battery
     0xF0040001: FaultSpec("Error", AUTO, "Battery voltage too high; unplug the charger."),
@@ -109,8 +110,9 @@ FAULTS: dict[int, FaultSpec] = {
     0xF0090002: FaultSpec("Warning", AUTO, "Lens may be dirty or fogged."),
     0xF0090003: FaultSpec("Info", AUTO, "Lens dirt check is unavailable right now."),
     0xF0090004: FaultSpec("Warning", AUTO, "Camera calibration data missing; image quality may suffer."),
-    # Firmware consistency
+    # Firmware consistency & upgrades
     0xF00A0001: FaultSpec("Warning", CONFIRM, "Firmware versions do not match; update the firmware.", _FW_PARTS),
+    0xF00A0002: FaultSpec("Warning", AUTO, "Firmware upgrade in progress; external motion control is blocked."),
 }
 
 
