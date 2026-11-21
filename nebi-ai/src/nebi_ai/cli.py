@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 import sys
 import threading
 import time
@@ -32,6 +33,10 @@ def _apply_cli_config(store: MemoryStore, args: argparse.Namespace) -> Any:
     updates: dict[str, Any] = {}
     if getattr(args, "model", None):
         updates["model"] = args.model
+    if getattr(args, "live_model", None):
+        updates["live_model"] = args.live_model
+    if getattr(args, "no_live", False):
+        updates["live_enabled"] = False
     if getattr(args, "pet_name", None):
         updates["pet_name"] = args.pet_name
     if getattr(args, "no_autonomy", False):
@@ -47,6 +52,7 @@ def _apply_cli_config(store: MemoryStore, args: argparse.Namespace) -> Any:
 def _cmd_run(args: argparse.Namespace) -> int:
     import uvicorn
 
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
     store = MemoryStore(Path(args.memory_dir) if args.memory_dir else None)
     cfg = _apply_cli_config(store, args)
     target = _target_from_args(args)
@@ -76,7 +82,8 @@ def _cmd_run(args: argparse.Namespace) -> int:
     url = f"http://{args.web_host}:{args.web_port}/"
     print(f"{cfg.pet_name} Web UI: {url}")
     print(f"  target: {target.label}")
-    print(f"  model:  {cfg.model}")
+    print(f"  live:   {cfg.live_model if cfg.live_enabled else 'disabled'}")
+    print(f"  brain:  {cfg.model}")
     print(f"  memory: {store.memories_dir}")
 
     if args.open:
@@ -165,6 +172,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--web-host", default="127.0.0.1", help="Web UI bind host (default: 127.0.0.1)")
     p_run.add_argument("--web-port", type=int, default=8780, help="Web UI bind port (default: 8780)")
     p_run.add_argument("--no-web", action="store_true", help="Run headless without the Web UI")
+    p_run.add_argument("--no-live", action="store_true", help="Disable Gemini Live and use chunked STT fallback")
+    p_run.add_argument("--live-model", default=None, help="Gemini Live model ID (default: gemini-3.8-live)")
     p_run.add_argument("--no-autonomy", action="store_true", help="Start with autonomous pet ticks paused")
     p_run.add_argument("--interval", type=float, default=None, help="Autonomous pet tick interval in seconds")
     p_run.add_argument("--open", action="store_true", help="Open the Web UI in your browser automatically")

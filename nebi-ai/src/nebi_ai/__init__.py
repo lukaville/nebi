@@ -7,7 +7,8 @@ from importlib.metadata import version as _version
 
 from nebi_ai.agent import PetAgentSession, TurnRecord, build_pet_agent, build_system_prompt
 from nebi_ai.bridge import RobotBridge, RobotTarget
-from nebi_ai.config import DEFAULT_MODEL, MemoryStore, PetConfig, default_home_dir
+from nebi_ai.config import DEFAULT_LIVE_MODEL, DEFAULT_MODEL, MemoryStore, PetConfig, default_home_dir
+from nebi_ai.live import GeminiLiveManager
 
 try:
     __version__ = _version("nebi-ai")  # pyproject.toml is the single source
@@ -15,7 +16,9 @@ except PackageNotFoundError:  # running from a source tree that was never instal
     __version__ = "0+unknown"
 
 __all__ = [
+    "DEFAULT_LIVE_MODEL",
     "DEFAULT_MODEL",
+    "GeminiLiveManager",
     "MemoryStore",
     "PetAgentSession",
     "PetConfig",

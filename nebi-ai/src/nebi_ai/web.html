@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>nebi-ai — Pet Robot</title>
+<title>nebi-ai — Beni Pet Robot</title>
 <style>
   :root {
     --bg: #0f1218;
@@ -13,7 +13,6 @@
     --text: #e8edf5;
     --muted: #93a1b8;
     --accent: #63b3ed;
-    --accent-2: #805ad5;
     --ok: #48bb78;
     --warn: #ecc94b;
     --danger: #f56565;
@@ -26,16 +25,10 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
     font-size: 14px; line-height: 1.45;
   }
-  .app {
-    display: grid;
-    grid-template-rows: auto 1fr;
-    height: 100vh;
-  }
+  .app { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
   header {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 10px 18px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
+    padding: 10px 18px; background: var(--panel); border-bottom: 1px solid var(--border);
     flex-wrap: wrap;
   }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
@@ -50,7 +43,7 @@
     color: var(--muted); font-size: 12px;
   }
   .pill strong { color: var(--text); font-weight: 600; }
-  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   button {
     cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
     background: var(--panel-2); color: var(--text);
@@ -61,55 +54,87 @@
   button:disabled { opacity: 0.5; cursor: not-allowed; }
   button.primary { background: var(--accent); color: #0a1019; border-color: var(--accent); font-weight: 600; }
   button.primary:hover { background: #7ec3f3; }
+  button.active-green { background: #1c3d2b; border-color: var(--ok); color: #9ae6b4; font-weight: 600; }
+  button.active-green:hover { background: #234d36; }
+  button.active-blue { background: #18324c; border-color: var(--accent); color: #90cdf4; font-weight: 600; }
+  button.active-blue:hover { background: #1f4060; }
   button.danger { background: var(--danger); color: #fff; border-color: var(--danger); font-weight: 700; }
   button.danger:hover { background: #fc8181; }
 
   main {
     display: grid;
-    grid-template-columns: minmax(340px, 1.4fr) minmax(320px, 1fr);
-    gap: 14px;
-    padding: 14px;
-    min-height: 0;
-    overflow: hidden;
+    grid-template-columns: minmax(380px, 1.55fr) minmax(320px, 1fr);
+    gap: 14px; padding: 14px; min-height: 0; overflow: hidden;
   }
-  @media (max-width: 900px) {
-    main { grid-template-columns: 1fr; overflow-y: auto; }
-  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; overflow-y: auto; } }
 
   .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    display: flex; flex-direction: column;
-    min-height: 0; overflow: hidden;
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    display: flex; flex-direction: column; min-height: 0; overflow: hidden;
   }
   .card-header {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
     padding: 10px 14px; border-bottom: 1px solid var(--border);
     font-weight: 600; font-size: 13px; color: var(--muted);
     text-transform: uppercase; letter-spacing: 0.04em;
   }
+  .card-header-right {
+    display: flex; align-items: center; gap: 12px; text-transform: none; letter-spacing: normal; font-weight: 500;
+  }
 
-  /* Chat */
+  /* Chat & Tool Details */
   .chat-log {
     flex: 1; overflow-y: auto; padding: 14px;
     display: flex; flex-direction: column; gap: 12px;
   }
   .msg {
-    max-width: 88%; padding: 10px 13px; border-radius: 12px;
+    max-width: 92%; padding: 10px 13px; border-radius: 12px;
     border: 1px solid var(--border); white-space: pre-wrap; word-break: break-word;
   }
   .msg.user { align-self: flex-end; background: #1c2e45; border-color: #2c4a70; }
   .msg.pet { align-self: flex-start; background: var(--panel-2); }
+  .msg.live { align-self: flex-start; background: #152836; border-color: #2b5470; }
   .msg.auto { align-self: flex-start; background: #1b1829; border-color: #352b54; }
   .msg.err { border-color: var(--danger); background: #2c161c; }
-  .msg-meta { font-size: 11px; color: var(--muted); margin-bottom: 4px; display: flex; gap: 8px; }
-  .tools { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
-  .tool-tag {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px; padding: 2px 7px; border-radius: 6px;
-    background: #121722; border: 1px solid var(--border); color: var(--accent);
+  .msg-ignored {
+    align-self: center; font-size: 11.5px; color: var(--muted);
+    padding: 3px 10px; border-radius: 999px; background: #131720; border: 1px dashed var(--border);
   }
+  .msg-meta { font-size: 11px; color: var(--muted); margin-bottom: 4px; display: flex; gap: 8px; }
+  .tools-list { margin-top: 9px; display: flex; flex-direction: column; gap: 6px; }
+  details.tool-detail {
+    background: #10151f; border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; white-space: normal;
+  }
+  details.tool-detail summary {
+    cursor: pointer; padding: 6px 10px; display: flex; align-items: center; gap: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
+    user-select: none; list-style: none;
+  }
+  details.tool-detail summary::-webkit-details-marker { display: none; }
+  .tool-chevron { color: var(--muted); font-size: 10px; transition: transform .15s; }
+  details.tool-detail[open] .tool-chevron { transform: rotate(90deg); }
+  .tool-name { color: var(--accent); font-weight: 600; }
+  .tool-badge {
+    font-size: 10.5px; padding: 1px 6px; border-radius: 4px; font-weight: 600;
+  }
+  .tool-badge.ok { background: #193827; color: #68d391; }
+  .tool-badge.fail { background: #3b1c22; color: #fc8181; }
+  .tool-args-inline {
+    color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
+  }
+  .tool-body {
+    border-top: 1px solid var(--border); padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 6px; background: #0c1018;
+  }
+  .tool-sec-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .tool-json {
+    margin: 0; padding: 7px 9px; border-radius: 6px;
+    background: #131926; border: 1px solid #20293d;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+    color: #d6deeb; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow-y: auto;
+  }
+
   .chat-input {
     display: flex; gap: 8px; padding: 12px;
     border-top: 1px solid var(--border); background: #131720;
@@ -181,19 +206,22 @@
   <header>
     <div class="brand">
       <span class="dot" id="status-dot"></span>
-      <span id="pet-title">Nebi</span>
+      <span id="pet-title">Beni</span>
       <span class="pill" id="target-pill">connecting…</span>
     </div>
     <div class="status-pills">
       <span class="pill">Posture: <strong id="st-posture">—</strong></span>
       <span class="pill">Battery: <strong id="st-battery">—</strong></span>
       <span class="pill">Targets: <strong id="st-targets">0</strong></span>
-      <span class="pill">Mic: <strong id="st-mic">—</strong></span>
-      <span class="pill">Autonomy: <strong id="st-autonomy">—</strong></span>
+      <span class="pill" title="Total LLM tokens used this session (0 tokens/s when idle)">Tokens: <strong id="st-tokens">0</strong></span>
     </div>
     <div class="header-actions">
+      <button id="btn-autonomy-toggle" title="Enable or disable AI mode (Gemini Live + autonomous ticks)">AI Mode: —</button>
+      <button id="btn-live-toggle" title="Toggle Gemini 3.8 Live realtime audio + camera session">Live: —</button>
+      <button id="btn-token-saver" title="Toggle idle token optimization (ON = 0 tok/s Standby when quiet; OFF = full always-on Gemini Live)">Idle Saver: OFF</button>
+      <button id="btn-mic-toggle" title="Toggle continuous microphone listening">Mic: —</button>
       <button id="btn-tick" title="Run one autonomous pet tick now">Wake Tick</button>
-      <button class="danger" id="btn-stop" title="Stop all motion and pause autonomy">STOP</button>
+      <button class="danger" id="btn-stop" title="Stop all motion and pause AI mode">STOP</button>
     </div>
   </header>
 
@@ -201,11 +229,18 @@
     <section class="card">
       <div class="card-header">
         <span>Pet Chat &amp; Activity</span>
-        <span id="busy-label" style="color:var(--accent);text-transform:none;"></span>
+        <div class="card-header-right">
+          <span id="busy-label" style="color:var(--accent);"></span>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;">
+            <input type="checkbox" id="chk-expand-tools" checked>
+            Expand tool details
+          </label>
+          <button id="btn-reset-session" title="Clear chat history and restart Gemini Live + DeepAgent session (keeps MEMORY.md)" style="padding:4px 9px;font-size:12px;">Clear / Restart</button>
+        </div>
       </div>
       <div class="chat-log" id="chat-log"></div>
       <form class="chat-input" id="chat-form">
-        <input id="chat-text" type="text" placeholder="Talk to your pet robot… (e.g. 'Say hi and remember my name is Alex')" autocomplete="off">
+        <input id="chat-text" type="text" placeholder="Talk to Beni… (or just speak out loud!)" autocomplete="off">
         <button class="primary" type="submit" id="chat-send">Send</button>
       </form>
     </section>
@@ -227,14 +262,26 @@
         </div>
         <div class="quick-grid">
           <button data-act="look">Look</button>
-          <button id="btn-listen" title="Listen via robot mic and reply">Listen</button>
+          <button id="btn-listen" title="Listen once via robot mic and reply (bypasses wake word)">Listen Now</button>
           <button data-act="stand">Stand</button>
           <button data-act="sit">Sit</button>
           <button data-act="greet">Greet</button>
           <button data-act="wiggle">Wiggle</button>
           <button data-act="dock">Dock</button>
         </div>
+        <div class="hint" id="wake-hint"></div>
         <div class="hint" id="home-path-hint"></div>
+        <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <strong style="font-size:12px;color:var(--muted);text-transform:uppercase;">Mic Test &amp; Recorded Clips</strong>
+            <div style="display:flex;gap:6px;">
+              <button id="btn-rec-clip" style="padding:4px 9px;font-size:12px;">Record 5s Clip</button>
+              <button id="btn-refresh-clips" style="padding:4px 9px;font-size:12px;">Refresh</button>
+            </div>
+          </div>
+          <div class="hint" id="clip-status">Every detected voice utterance is also saved here so you can hear what Beni's mic captured.</div>
+          <div id="clips-list" style="display:flex;flex-direction:column;gap:6px;max-height:210px;overflow-y:auto;"></div>
+        </div>
       </div>
 
       <div class="tab-body" id="tab-params">
@@ -242,13 +289,51 @@
           Pet Name
           <input type="text" id="cfg-pet-name">
         </label>
+        <label class="toggle">
+          <span><strong>Gemini Live Mode</strong> (Realtime Audio + Camera)</span>
+          <input type="checkbox" id="cfg-live-enabled">
+        </label>
+        <label class="toggle">
+          <span>Idle Token Saver (0 tok/s Standby when quiet)</span>
+          <input type="checkbox" id="cfg-token-saver">
+        </label>
         <label class="field">
-          Model Preset
+          Gemini Live Model
+          <select id="cfg-live-model-preset"></select>
+          <input type="text" id="cfg-live-model" placeholder="gemini-3.8-live">
+        </label>
+        <div class="row-2">
+          <label class="field">
+            Live Voice Output
+            <select id="cfg-live-voice-mode">
+              <option value="gemini">Gemini Live Native Audio</option>
+              <option value="robot_tts">Nebi Robot TTS</option>
+            </select>
+          </label>
+          <label class="field">
+            Gemini Live Voice
+            <select id="cfg-live-voice-name"></select>
+          </label>
+        </div>
+        <div class="row-2">
+          <label class="field">
+            VAD Speech Threshold (<span id="lbl-vad-rms">0.036</span>)
+            <input type="range" id="cfg-vad-rms" min="0.012" max="0.120" step="0.004">
+          </label>
+          <label class="field">
+            Idle Standby Timeout (s)
+            <input type="number" id="cfg-idle-timeout" min="10" max="600" step="5">
+          </label>
+        </div>
+        <input type="hidden" id="cfg-live-fps" value="1.0">
+        <span id="lbl-live-fps" style="display:none;">1.0</span>
+        <label class="field">
+          DeepAgent Brain Preset (Memory &amp; Planning)
           <select id="cfg-model-preset"></select>
         </label>
         <label class="field">
-          Model ID (provider:model)
-          <input type="text" id="cfg-model" placeholder="google_genai:gemini-2.5-flash">
+          DeepAgent Model ID (provider:model)
+          <input type="text" id="cfg-model" placeholder="google_genai:gemini-4-hydrogen">
         </label>
         <label class="field">
           API Key Override (optional, stored in memory only)
@@ -274,6 +359,24 @@
             <input type="text" id="cfg-quiet" placeholder="22-8">
           </label>
         </div>
+        <div class="row-2">
+          <label class="field">
+            Speech Language (e.g. en, ru, blank=auto)
+            <input type="text" id="cfg-lang" placeholder="en">
+          </label>
+          <label class="field">
+            Follow-up Window (s)
+            <input type="number" id="cfg-followup" min="0" max="120" step="1">
+          </label>
+        </div>
+        <label class="field">
+          Wake Words (comma-separated, case-insensitive)
+          <input type="text" id="cfg-wake-words" placeholder="beni, benny, bennie, nebi">
+        </label>
+        <label class="toggle">
+          <span>Require Wake Word ("Beni")</span>
+          <input type="checkbox" id="cfg-wake-enabled">
+        </label>
         <label class="toggle">
           <span>Continuous Microphone Listening</span>
           <input type="checkbox" id="cfg-listen">
@@ -320,6 +423,7 @@
 <script>
 const $ = (s) => document.querySelector(s);
 let currentConfig = {};
+let liveStatus = { connected: false, model: "", error: null };
 let activeMemPath = "MEMORY.md";
 
 document.querySelectorAll(".tab").forEach((btn) => {
@@ -332,37 +436,141 @@ document.querySelectorAll(".tab").forEach((btn) => {
   });
 });
 
+$("#chk-expand-tools").addEventListener("change", (e) => {
+  const open = e.target.checked;
+  document.querySelectorAll("details.tool-detail").forEach((d) => { d.open = open; });
+});
+
+function showSessionResetNotice(ts) {
+  const log = $("#chat-log");
+  log.innerHTML = "";
+  const el = document.createElement("div");
+  el.className = "msg-ignored";
+  el.textContent = `${formatTime(ts || Date.now() / 1000)} · Session restarted — Live & DeepAgent context cleared (persistent MEMORY.md kept)`;
+  log.appendChild(el);
+}
+
+$("#btn-reset-session").addEventListener("click", async () => {
+  const btn = $("#btn-reset-session");
+  btn.disabled = true;
+  try {
+    await fetch("/api/session/reset?clear_history=true", { method: "POST" });
+    showSessionResetNotice();
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 function formatTime(ts) {
   return new Date(ts * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
+function prettyJson(val) {
+  if (val === undefined) return "(not recorded)";
+  if (typeof val === "string") return val;
+  try { return JSON.stringify(val, null, 2); } catch (_) { return String(val); }
+}
+
+function buildToolElement(tc) {
+  const det = document.createElement("details");
+  det.className = "tool-detail";
+  det.open = $("#chk-expand-tools").checked;
+
+  const sum = document.createElement("summary");
+  const chev = document.createElement("span");
+  chev.className = "tool-chevron";
+  chev.textContent = "▶";
+  sum.appendChild(chev);
+
+  const name = document.createElement("span");
+  name.className = "tool-name";
+  name.textContent = tc.name || "tool";
+  sum.appendChild(name);
+
+  if (tc.ok === true || tc.ok === false) {
+    const badge = document.createElement("span");
+    badge.className = "tool-badge " + (tc.ok ? "ok" : "fail");
+    badge.textContent = tc.ok ? "✓ ok" : "✗ err";
+    sum.appendChild(badge);
+  }
+
+  const inlineArgs = document.createElement("span");
+  inlineArgs.className = "tool-args-inline";
+  const argsKeys = tc.args && Object.keys(tc.args).length ? JSON.stringify(tc.args) : "{}";
+  inlineArgs.textContent = argsKeys;
+  sum.appendChild(inlineArgs);
+  det.appendChild(sum);
+
+  const body = document.createElement("div");
+  body.className = "tool-body";
+
+  const lblIn = document.createElement("div");
+  lblIn.className = "tool-sec-label";
+  lblIn.textContent = "Arguments";
+  const preIn = document.createElement("pre");
+  preIn.className = "tool-json";
+  preIn.textContent = prettyJson(tc.args || {});
+  body.appendChild(lblIn);
+  body.appendChild(preIn);
+
+  if ("output" in tc) {
+    const lblOut = document.createElement("div");
+    lblOut.className = "tool-sec-label";
+    lblOut.textContent = "Result";
+    const preOut = document.createElement("pre");
+    preOut.className = "tool-json";
+    preOut.textContent = prettyJson(tc.output);
+    body.appendChild(lblOut);
+    body.appendChild(preOut);
+  }
+
+  det.appendChild(body);
+  return det;
+}
+
+function appendIgnoredSpeech(text, ts) {
+  const log = $("#chat-log");
+  const el = document.createElement("div");
+  el.className = "msg-ignored";
+  el.textContent = `${formatTime(ts)} · Heard "${text}" (ignored — say "${(currentConfig.wake_words || "Beni").split(",")[0].trim()}" first)`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
 function appendTurn(turn) {
   const log = $("#chat-log");
-  if (turn.kind === "chat" && turn.prompt) {
+  if ((turn.kind === "chat" || turn.kind === "live") && turn.prompt) {
     const u = document.createElement("div");
     u.className = "msg user";
-    u.innerHTML = `<div class="msg-meta"><span>You</span><span>${formatTime(turn.timestamp)}</span></div>`;
+    const src = turn.kind === "live" ? "You (Live)" : "You";
+    u.innerHTML = `<div class="msg-meta"><span>${src}</span><span>${formatTime(turn.timestamp)}</span></div>`;
     const body = document.createElement("div");
     body.textContent = turn.prompt;
     u.appendChild(body);
     log.appendChild(u);
   }
   const el = document.createElement("div");
-  el.className = "msg " + (turn.error ? "err" : (turn.kind === "autonomy" ? "auto" : "pet"));
-  const who = turn.kind === "autonomy" ? `${currentConfig.pet_name || "Nebi"} (autonomy)` : (currentConfig.pet_name || "Nebi");
+  const msgCls = turn.error
+    ? "err"
+    : (turn.kind === "autonomy" || turn.kind === "deepagent" ? "auto" : (turn.kind === "live" ? "live" : "pet"));
+  el.className = "msg " + msgCls;
+  const petName = currentConfig.pet_name || "Beni";
+  const whoMap = {
+    autonomy: `${petName} · Autonomy`,
+    deepagent: `${petName} · DeepAgent Brain`,
+    live: `${petName} · Gemini Live`,
+  };
+  const who = whoMap[turn.kind] || petName;
   el.innerHTML = `<div class="msg-meta"><span>${who}</span><span>${formatTime(turn.timestamp)}</span></div>`;
   const body = document.createElement("div");
-  body.textContent = turn.error ? `Error: ${turn.error}` : (turn.reply || "(no text reply)");
+  body.textContent = turn.error ? `Error: ${turn.error}` : (turn.reply || "(executed tools)");
   el.appendChild(body);
+
   if (turn.tool_calls && turn.tool_calls.length) {
     const tools = document.createElement("div");
-    tools.className = "tools";
+    tools.className = "tools-list";
     for (const tc of turn.tool_calls) {
-      const tag = document.createElement("span");
-      tag.className = "tool-tag";
-      tag.textContent = tc.name;
-      tag.title = JSON.stringify(tc.args || {});
-      tools.appendChild(tag);
+      tools.appendChild(buildToolElement(tc));
     }
     el.appendChild(tools);
   }
@@ -377,23 +585,117 @@ function setBusy(busy, kind) {
   $("#btn-tick").disabled = busy;
 }
 
-function fillConfigForm(cfg, presets) {
+function updateHeaderToggles(cfg) {
+  const autoBtn = $("#btn-autonomy-toggle");
+  if (cfg.autonomy_enabled) {
+    autoBtn.className = "active-green";
+    autoBtn.textContent = "AI Mode: ON · Pause";
+  } else {
+    autoBtn.className = "";
+    autoBtn.textContent = "AI Mode: PAUSED · Start";
+  }
+
+  const saverBtn = $("#btn-token-saver");
+  if (cfg.idle_token_saver) {
+    saverBtn.className = "active-green";
+    saverBtn.textContent = "Idle Saver: ON (0 tok/s)";
+  } else {
+    saverBtn.className = "";
+    saverBtn.textContent = "Idle Saver: OFF (Full Live)";
+  }
+
+  const liveBtn = $("#btn-live-toggle");
+  const liveOn = cfg.live_enabled !== false;
+  if (!cfg.autonomy_enabled) {
+    liveBtn.className = "";
+    liveBtn.textContent = "Live: PAUSED";
+  } else if (liveOn) {
+    const mode = liveStatus.mode || (liveStatus.connected ? "connected" : "connecting");
+    const labels = {
+      connected: "FULL LIVE",
+      standby: "STANDBY (0 tok/s)",
+      connecting: "CONNECTING…",
+      listening: "HEARING YOU…",
+      thinking: "THINKING…",
+      warm: "WARM (0 tok/s)",
+      paused: "PAUSED",
+    };
+    liveBtn.className = (mode === "connected" || mode === "listening" || mode === "thinking") ? "active-blue" : "";
+    liveBtn.textContent = `Live: ${cfg.live_model || "gemini-3.8-live"} · ${labels[mode] || mode}`;
+  } else {
+    liveBtn.className = "";
+    liveBtn.textContent = "Live: OFF";
+  }
+
+  const micBtn = $("#btn-mic-toggle");
+  const micOn = cfg.listen_enabled !== false;
+  if (micOn) {
+    micBtn.className = "active-green";
+    micBtn.textContent = cfg.wake_word_enabled ? "Mic: Wake Word ('Beni')" : "Mic: Open";
+  } else {
+    micBtn.className = "";
+    micBtn.textContent = "Mic: OFF";
+  }
+}
+
+function fillConfigForm(cfg, presets, livePresets, voicePresets) {
   currentConfig = cfg;
-  $("#pet-title").textContent = cfg.pet_name || "Nebi";
-  $("#st-mic").textContent = cfg.listen_enabled !== false ? "LISTENING" : "OFF";
-  $("#st-autonomy").textContent = cfg.autonomy_enabled ? `ON (${cfg.autonomy_interval_sec}s)` : "PAUSED";
-  $("#cfg-pet-name").value = cfg.pet_name || "Nebi";
+  $("#pet-title").textContent = cfg.pet_name || "Beni";
+  updateHeaderToggles(cfg);
+  const modeLabel = cfg.live_enabled !== false ? `Gemini Live (${cfg.live_model || "gemini-3.8-live"}, 0 idle tokens)` : "Whisper fallback";
+  $("#wake-hint").textContent = cfg.wake_word_enabled
+    ? `${modeLabel} · Wake word active: say "${cfg.wake_words || "Beni"}"`
+    : `${modeLabel} · Open-mic VAD: speak normally (wakes automatically above fan noise)`;
+
+  $("#cfg-pet-name").value = cfg.pet_name || "Beni";
+  $("#cfg-live-enabled").checked = cfg.live_enabled !== false;
+  $("#cfg-token-saver").checked = Boolean(cfg.idle_token_saver);
+  $("#cfg-live-model").value = cfg.live_model || "gemini-3.8-live";
+  $("#cfg-live-voice-mode").value = cfg.live_voice_mode || "gemini";
+  $("#cfg-vad-rms").value = cfg.live_vad_rms ?? 0.036;
+  $("#lbl-vad-rms").textContent = Number(cfg.live_vad_rms ?? 0.036).toFixed(3);
+  $("#cfg-idle-timeout").value = cfg.live_idle_timeout_sec ?? 45;
+  $("#cfg-live-fps").value = cfg.live_video_fps ?? 1.0;
+  $("#lbl-live-fps").textContent = Number(cfg.live_video_fps ?? 1.0).toFixed(1);
   $("#cfg-model").value = cfg.model || "";
   $("#cfg-temp").value = cfg.temperature ?? 0.6;
   $("#lbl-temp").textContent = String(cfg.temperature ?? 0.6);
   $("#cfg-max-drive").value = cfg.max_drive_m ?? 1.0;
-  $("#cfg-interval").value = cfg.autonomy_interval_sec ?? 25;
+  $("#cfg-interval").value = cfg.autonomy_interval_sec ?? 45;
   $("#cfg-quiet").value = cfg.quiet_hours || "";
+  $("#cfg-lang").value = cfg.listen_language ?? "en";
+  $("#cfg-followup").value = cfg.followup_window_sec ?? 15;
+  $("#cfg-wake-words").value = cfg.wake_words || "beni, benny, bennie, nebi";
+  $("#cfg-wake-enabled").checked = Boolean(cfg.wake_word_enabled);
   $("#cfg-listen").checked = cfg.listen_enabled !== false;
   $("#cfg-autonomy").checked = Boolean(cfg.autonomy_enabled);
   $("#cfg-auto-drive").checked = Boolean(cfg.autonomy_allow_drive);
   $("#cfg-voice").checked = cfg.voice_enabled !== false;
   $("#cfg-personality").value = cfg.personality || "";
+  if (livePresets) {
+    const sel = $("#cfg-live-model-preset");
+    sel.innerHTML = "";
+    for (const p of livePresets) {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.label;
+      if (p.id === cfg.live_model) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+  if (voicePresets) {
+    const vsel = $("#cfg-live-voice-name");
+    vsel.innerHTML = "";
+    for (const v of voicePresets) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      if (v === (cfg.live_voice_name || "Puck")) opt.selected = true;
+      vsel.appendChild(opt);
+    }
+  } else if ($("#cfg-live-voice-name").options.length) {
+    $("#cfg-live-voice-name").value = cfg.live_voice_name || "Puck";
+  }
   if (presets) {
     const sel = $("#cfg-model-preset");
     sel.innerHTML = "";
@@ -407,6 +709,12 @@ function fillConfigForm(cfg, presets) {
   }
 }
 
+$("#cfg-live-model-preset").addEventListener("change", (e) => {
+  $("#cfg-live-model").value = e.target.value;
+});
+$("#cfg-vad-rms").addEventListener("input", (e) => {
+  $("#lbl-vad-rms").textContent = Number(e.target.value).toFixed(3);
+});
 $("#cfg-model-preset").addEventListener("change", (e) => {
   $("#cfg-model").value = e.target.value;
 });
@@ -414,16 +722,91 @@ $("#cfg-temp").addEventListener("input", (e) => {
   $("#lbl-temp").textContent = e.target.value;
 });
 
+async function patchConfig(updates, apiKey = null) {
+  const res = await fetch("/api/config", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ updates, api_key: apiKey }),
+  });
+  const data = await res.json();
+  fillConfigForm(data.config);
+  $("#key-warning").style.display = data.has_api_key ? "none" : "block";
+  return data;
+}
+
+$("#btn-live-toggle").addEventListener("click", async () => {
+  await patchConfig({ live_enabled: currentConfig.live_enabled === false });
+});
+
+$("#btn-token-saver").addEventListener("click", async () => {
+  await patchConfig({ idle_token_saver: !currentConfig.idle_token_saver });
+});
+
+$("#btn-autonomy-toggle").addEventListener("click", async () => {
+  await patchConfig({ autonomy_enabled: !currentConfig.autonomy_enabled });
+});
+
+$("#btn-mic-toggle").addEventListener("click", async () => {
+  await patchConfig({ listen_enabled: currentConfig.listen_enabled === false });
+});
+
 async function loadInfo() {
   const res = await fetch("/api/info");
   const info = await res.json();
-  fillConfigForm(info.config, info.model_presets);
+  if (info.live) liveStatus = info.live;
+  if (info.total_tokens != null) $("#st-tokens").textContent = Number(info.total_tokens).toLocaleString();
+  fillConfigForm(info.config, info.model_presets, info.live_model_presets, info.live_voice_presets);
   $("#target-pill").textContent = info.target;
   $("#home-path-hint").textContent = `Memory home: ${info.memories_dir}`;
   $("#mem-dir-label").textContent = `Directory: ${info.memories_dir}`;
   $("#key-warning").style.display = info.has_api_key ? "none" : "block";
   setBusy(info.busy, "");
 }
+
+async function loadClips() {
+  try {
+    const res = await fetch("/api/audio/clips");
+    const data = await res.json();
+    const box = $("#clips-list");
+    box.innerHTML = "";
+    for (const c of (data.items || []).slice(0, 8)) {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;flex-direction:column;gap:3px;padding:6px 8px;border-radius:8px;background:#11151d;border:1px solid var(--border);";
+      const lbl = document.createElement("div");
+      lbl.style.cssText = "font-size:11.5px;color:var(--muted);font-family:ui-monospace,monospace;display:flex;justify-content:space-between;";
+      lbl.innerHTML = `<span>${c.name}</span><span>${c.duration_s}s · ${c.sample_rate / 1000}kHz</span>`;
+      const aud = document.createElement("audio");
+      aud.controls = true;
+      aud.preload = "none";
+      aud.style.cssText = "width:100%;height:28px;";
+      aud.src = `/api/audio/clips/${encodeURIComponent(c.name)}`;
+      row.appendChild(lbl);
+      row.appendChild(aud);
+      box.appendChild(row);
+    }
+  } catch (_) {}
+}
+
+$("#btn-refresh-clips").addEventListener("click", loadClips);
+$("#btn-rec-clip").addEventListener("click", async () => {
+  const btn = $("#btn-rec-clip");
+  btn.disabled = true;
+  btn.textContent = "Recording 5s…";
+  $("#clip-status").textContent = "Speak now — recording 5s directly from Beni's mic…";
+  try {
+    const res = await fetch("/api/audio/record?seconds=5", { method: "POST" });
+    const out = await res.json();
+    if (out.ok) {
+      $("#clip-status").textContent = `Saved ${out.filtered_clip} (filtered RMS=${out.filtered_rms}, raw RMS=${out.raw_rms})`;
+      await loadClips();
+    } else {
+      $("#clip-status").textContent = `Record error: ${out.error || "failed"}`;
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Record 5s Clip";
+  }
+});
 
 async function loadHistory() {
   const res = await fetch("/api/history?limit=60");
@@ -440,12 +823,21 @@ async function refreshState() {
     $("#st-posture").textContent = st.posture || "—";
     $("#st-battery").textContent = st.battery != null ? `${st.battery}%${st.charging ? " ⚡" : ""}` : "—";
     $("#st-targets").textContent = Array.isArray(st.targets) ? String(st.targets.length) : String(st.targets ?? 0);
+    if (env.total_tokens != null) $("#st-tokens").textContent = Number(env.total_tokens).toLocaleString();
+    if (env.live) {
+      liveStatus = env.live;
+      updateHeaderToggles(currentConfig);
+    }
   } catch (_) {}
 }
 
+let camLoading = false;
 function refreshCamera(force = false) {
+  if (camLoading && !force) return;
+  camLoading = true;
   const img = $("#cam-img");
-  img.onload = () => { img.style.display = "block"; $("#cam-empty").style.display = "none"; };
+  img.onload = () => { camLoading = false; img.style.display = "block"; $("#cam-empty").style.display = "none"; };
+  img.onerror = () => { camLoading = false; };
   img.src = `/api/camera.jpg?refresh=${force ? 1 : 0}&t=${Date.now()}`;
 }
 
@@ -455,6 +847,18 @@ $("#chat-form").addEventListener("submit", async (e) => {
   const msg = input.value.trim();
   if (!msg) return;
   input.value = "";
+  if (currentConfig.live_enabled !== false) {
+    const r = await fetch("/api/live/text", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg }),
+    });
+    const out = await r.json();
+    if (out.ok) {
+      refreshState();
+      return;
+    }
+  }
   await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -476,7 +880,7 @@ $("#btn-listen").addEventListener("click", async () => {
     await fetch("/api/listen", { method: "POST" });
   } finally {
     btn.disabled = false;
-    btn.textContent = "Listen";
+    btn.textContent = "Listen Now";
     refreshState();
   }
 });
@@ -507,11 +911,23 @@ document.querySelectorAll("[data-act]").forEach((btn) => {
 $("#btn-save-cfg").addEventListener("click", async () => {
   const updates = {
     pet_name: $("#cfg-pet-name").value.trim(),
+    live_enabled: $("#cfg-live-enabled").checked,
+    idle_token_saver: $("#cfg-token-saver").checked,
+    live_model: $("#cfg-live-model").value.trim(),
+    live_voice_mode: $("#cfg-live-voice-mode").value,
+    live_voice_name: $("#cfg-live-voice-name").value,
+    live_vad_rms: parseFloat($("#cfg-vad-rms").value),
+    live_idle_timeout_sec: parseFloat($("#cfg-idle-timeout").value),
+    live_video_fps: parseFloat($("#cfg-live-fps").value),
     model: $("#cfg-model").value.trim(),
     temperature: parseFloat($("#cfg-temp").value),
     max_drive_m: parseFloat($("#cfg-max-drive").value),
     autonomy_interval_sec: parseFloat($("#cfg-interval").value),
     quiet_hours: $("#cfg-quiet").value.trim(),
+    listen_language: $("#cfg-lang").value.trim(),
+    followup_window_sec: parseFloat($("#cfg-followup").value),
+    wake_words: $("#cfg-wake-words").value.trim(),
+    wake_word_enabled: $("#cfg-wake-enabled").checked,
     listen_enabled: $("#cfg-listen").checked,
     autonomy_enabled: $("#cfg-autonomy").checked,
     autonomy_allow_drive: $("#cfg-auto-drive").checked,
@@ -519,15 +935,8 @@ $("#btn-save-cfg").addEventListener("click", async () => {
     personality: $("#cfg-personality").value,
   };
   const apiKey = $("#cfg-api-key").value.trim();
-  const res = await fetch("/api/config", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ updates, api_key: apiKey || null }),
-  });
-  const data = await res.json();
-  fillConfigForm(data.config);
+  await patchConfig(updates, apiKey || null);
   $("#cfg-api-key").value = "";
-  $("#key-warning").style.display = data.has_api_key ? "none" : "block";
   $("#cfg-saved-msg").textContent = "Saved!";
   setTimeout(() => { $("#cfg-saved-msg").textContent = ""; }, 2000);
 });
@@ -590,12 +999,36 @@ $("#btn-mem-refresh").addEventListener("click", loadMemories);
 
 function connectEvents() {
   const es = new EventSource("/api/events");
+  window.addEventListener("beforeunload", () => es.close());
   es.onmessage = (ev) => {
     try {
       const msg = JSON.parse(ev.data);
-      if (msg.type === "turn") {
+      if (msg.type === "hello") {
+        if (msg.data && msg.data.total_tokens != null) {
+          $("#st-tokens").textContent = Number(msg.data.total_tokens).toLocaleString();
+        }
+        if (msg.data && msg.data.live) {
+          liveStatus = msg.data.live;
+          updateHeaderToggles(currentConfig);
+        }
+      } else if (msg.type === "live_state") {
+        liveStatus = msg.data;
+        updateHeaderToggles(currentConfig);
+      } else if (msg.type === "tokens") {
+        if (msg.data && msg.data.total_tokens != null) {
+          $("#st-tokens").textContent = Number(msg.data.total_tokens).toLocaleString();
+        }
+      } else if (msg.type === "clip_saved") {
+        loadClips();
+      } else if (msg.type === "turn") {
         appendTurn(msg.data);
         refreshState();
+      } else if (msg.type === "session_reset") {
+        if (msg.data && msg.data.clear_history !== false) {
+          showSessionResetNotice(msg.timestamp);
+        }
+      } else if (msg.type === "heard_ignored") {
+        appendIgnoredSpeech(msg.data.text, msg.timestamp);
       } else if (msg.type === "status") {
         setBusy(msg.data.busy, msg.data.kind);
       } else if (msg.type === "config") {
@@ -608,9 +1041,15 @@ function connectEvents() {
 (async () => {
   await loadInfo();
   await loadHistory();
+  await loadClips();
   await refreshState();
   connectEvents();
   setInterval(refreshState, 4000);
+  setInterval(() => {
+    if ($("#tab-robot").classList.contains("active")) {
+      refreshCamera(false);
+    }
+  }, 2000);
 })();
 </script>
 </body>

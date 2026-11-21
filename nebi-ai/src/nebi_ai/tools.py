@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
+from pathlib import Path
 from typing import Any
 
 from langchain_core.tools import BaseTool, tool
@@ -53,6 +55,7 @@ def build_robot_tools(
     bridge: RobotBridge,
     get_config: Callable[[], PetConfig],
     is_autonomous_turn: Callable[[], bool] | None = None,
+    transcribe_wav: Callable[[str], Awaitable[str]] | None = None,
 ) -> list[BaseTool]:
     """Create the complete, multimodal, safety-aware LangChain toolset backed by `bridge`."""
     check_auto = is_autonomous_turn or (lambda: False)
@@ -67,7 +70,7 @@ def build_robot_tools(
         """Capture a live camera frame and return BOTH the image (so you can see the scene) and detected targets."""
         env = await bridge.call("look", {"annotate": annotate, "max_width": max_width})
         text_summary = _fmt(env)
-        img_bytes = bridge.read_last_snapshot_bytes()
+        img_bytes = await asyncio.to_thread(bridge.read_last_snapshot_bytes)
         if env.get("ok") and img_bytes:
             b64 = base64.b64encode(img_bytes).decode("ascii")
             return [
@@ -78,14 +81,31 @@ def build_robot_tools(
 
     @tool
     async def robot_listen(seconds: float = 8.0, language: str = "") -> str:
-        """Listen through the robot's microphone and transcribe human speech (stops ~1 s after speech ends).
-
-        If the first call returns `stt="loading"`, retry once after a few seconds while the speech model loads.
-        """
-        args: dict[str, Any] = {"seconds": max(1.0, min(float(seconds), 30.0))}
+        """Listen through the robot's microphone and transcribe human speech (stops ~1 s after speech ends)."""
+        args: dict[str, Any] = {"seconds": max(1.0, min(float(seconds), 30.0)), "no_save": True}
         if language.strip():
             args["language"] = language.strip()
-        return _fmt(await bridge.call("listen", args))
+        env = await bridge.call("listen", args)
+        if env.get("ok"):
+            result = env.get("result") or {}
+            wav_path = result.get("wav")
+            if transcribe_wav is not None and result.get("speech") is not False and not result.get("text") and isinstance(wav_path, str):
+                transcript = await transcribe_wav(wav_path)
+                if transcript:
+                    result["text"] = transcript
+                    result["speech"] = True
+                    result["stt"] = "multimodal_llm"
+                    result["summary"] = f"heard: {transcript}"
+                else:
+                    result["text"] = ""
+                    result["speech"] = False
+                    result["summary"] = "silence (no speech transcribed)"
+            if isinstance(wav_path, str) and Path(wav_path).name.startswith("listen-"):
+                try:
+                    await asyncio.to_thread(Path(wav_path).unlink, True)
+                except OSError:
+                    pass
+        return _fmt(env)
 
     @tool
     async def robot_state(full: bool = False) -> str:

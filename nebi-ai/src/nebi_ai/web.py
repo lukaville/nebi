@@ -10,12 +10,12 @@ from contextlib import asynccontextmanager
 from importlib import resources
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, Response, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from nebi_ai.agent import PetAgentSession
-from nebi_ai.config import MODEL_PRESETS
+from nebi_ai.config import LIVE_MODEL_PRESETS, LIVE_VOICE_PRESETS, MODEL_PRESETS
 
 _QUICK_ACTIONS: dict[str, tuple[str, dict[str, Any]]] = {
     "stand": ("stand", {}),
@@ -33,7 +33,7 @@ class ChatBody(BaseModel):
 
 
 class ConfigUpdateBody(BaseModel):
-    updates: dict[str, Any] = {}
+    updates: dict[str, Any] = Field(default_factory=dict)
     api_key: str | None = None
 
 
@@ -80,19 +80,24 @@ def create_web_app(
                 await session.bridge.stop()
 
     app = FastAPI(title="nebi-ai", lifespan=lifespan)
+    cached_html = resources.files("nebi_ai").joinpath("web.html").read_text(encoding="utf-8")
 
     @app.get("/", response_class=HTMLResponse)
     async def index() -> HTMLResponse:
-        html = resources.files("nebi_ai").joinpath("web.html").read_text(encoding="utf-8")
-        return HTMLResponse(content=html, headers={"Cache-Control": "no-cache"})
+        return HTMLResponse(content=cached_html, headers={"Cache-Control": "no-cache"})
 
     @app.get("/api/info")
     async def api_info() -> dict[str, Any]:
         return {
             "config": session.config.to_dict(),
             "model_presets": list(MODEL_PRESETS),
+            "live_model_presets": list(LIVE_MODEL_PRESETS),
+            "live_voice_presets": list(LIVE_VOICE_PRESETS),
+            "live": session.live.status_dict(),
+            "total_tokens": session.total_tokens,
             "home_dir": str(session.memory_store.home_dir),
             "memories_dir": str(session.memory_store.memories_dir),
+            "clips_dir": str(session.memory_store.clips_dir),
             "target": session.bridge.target.label,
             "busy": session.busy,
             "last_tick_at": session.last_tick_at,
@@ -102,13 +107,19 @@ def create_web_app(
     @app.get("/api/state")
     async def api_state() -> dict[str, Any]:
         try:
-            return await session.bridge.state()
+            st = await session.bridge.state()
+            return {**st, "live": session.live.status_dict(), "total_tokens": session.total_tokens}
         except Exception as exc:
             return {"ok": False, "error": {"code": "STATE_ERROR", "message": str(exc)}}
 
     @app.get("/api/history")
     async def api_history(limit: int = Query(default=60, ge=1, le=200)) -> dict[str, Any]:
         return {"items": session.memory_store.load_history(limit=limit)}
+
+    @app.post("/api/session/reset")
+    async def api_reset_session(clear_history: bool = Query(default=True)) -> dict[str, Any]:
+        """Clear chat log and restart both the Gemini Live session and DeepAgent thread (preserving MEMORY.md)."""
+        return await session.reset_session(clear_history=clear_history)
 
     @app.post("/api/chat")
     async def api_chat(body: ChatBody) -> dict[str, Any]:
@@ -117,13 +128,19 @@ def create_web_app(
         record = await session.chat(body.message)
         return record.to_dict()
 
+    @app.post("/api/live/text")
+    async def api_live_text(body: ChatBody) -> dict[str, Any]:
+        if not body.message.strip():
+            raise HTTPException(status_code=400, detail="Message must not be empty")
+        sent = await session.live.send_text(body.message)
+        return {"ok": sent, "live_connected": session.live.connected}
+
     @app.post("/api/listen")
     async def api_listen(seconds: float = Query(default=8.0, ge=1.0, le=30.0)) -> dict[str, Any]:
         """Listen through the robot microphone, transcribe speech, and send it to the pet agent."""
-        heard = await session.bridge.call("listen", {"seconds": seconds})
+        heard, text = await session.listen_once(seconds=seconds)
         if not heard.get("ok"):
             return {"ok": False, "heard": heard}
-        text = str((heard.get("result") or {}).get("text") or "").strip()
         if not text:
             return {"ok": True, "heard": heard, "text": "", "turn": None}
         record = await session.chat(f"[Heard via microphone]: {text}")
@@ -156,12 +173,33 @@ def create_web_app(
 
     @app.get("/api/camera.jpg")
     async def api_camera(refresh: bool = Query(default=False)) -> Response:
-        if refresh or session.bridge.read_last_snapshot_bytes() is None:
+        raw = None if refresh else await asyncio.to_thread(session.bridge.read_last_snapshot_bytes)
+        if raw is None:
             await session.bridge.call("look", {"annotate": True})
-        raw = session.bridge.read_last_snapshot_bytes()
+            raw = await asyncio.to_thread(session.bridge.read_last_snapshot_bytes)
         if not raw:
             raise HTTPException(status_code=404, detail="No camera snapshot available yet")
         return Response(content=raw, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+
+    @app.get("/api/audio/clips")
+    async def api_list_clips() -> dict[str, Any]:
+        items = await asyncio.to_thread(session.memory_store.list_clips)
+        return {"clips_dir": str(session.memory_store.clips_dir), "items": items}
+
+    @app.get("/api/audio/clips/{filename}")
+    async def api_get_clip(filename: str) -> Response:
+        try:
+            path = session.memory_store.resolve_clip_path(filename)
+            raw = await asyncio.to_thread(path.read_bytes)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return Response(content=raw, media_type="audio/wav", headers={"Cache-Control": "no-store"})
+
+    @app.post("/api/audio/record")
+    async def api_record_clip(seconds: float = Query(default=5.0, ge=1.0, le=15.0)) -> dict[str, Any]:
+        return await session.live.record_diagnostic_clip(seconds=seconds)
 
     @app.get("/api/memories")
     async def api_list_memories() -> dict[str, Any]:
@@ -194,18 +232,42 @@ def create_web_app(
         return {"ok": True, "deleted": deleted}
 
     @app.get("/api/events")
-    async def api_events() -> StreamingResponse:
+    async def api_events(request: Request) -> StreamingResponse:
         queue = session.subscribe()
 
         async def event_stream() -> AsyncIterator[str]:
             try:
-                yield f"data: {json.dumps({'type': 'hello', 'data': {'busy': session.busy}})}\n\n"
-                while True:
+                hello_payload = {
+                    "type": "hello",
+                    "data": {
+                        "busy": session.busy,
+                        "total_tokens": session.total_tokens,
+                        "live": session.live.status_dict(),
+                    },
+                }
+                yield f"data: {json.dumps(hello_payload)}\n\n"
+                while not session._stop_event.is_set() and not await request.is_disconnected():
+                    get_task = asyncio.create_task(queue.get())
+                    stop_task = asyncio.create_task(session._stop_event.wait())
                     try:
-                        event = await asyncio.wait_for(queue.get(), timeout=15.0)
-                        yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
-                    except asyncio.TimeoutError:
-                        yield ": keepalive\n\n"
+                        done, pending = await asyncio.wait(
+                            {get_task, stop_task},
+                            timeout=15.0,
+                            return_when=asyncio.FIRST_COMPLETED,
+                        )
+                        for p in pending:
+                            p.cancel()
+                        if stop_task in done:
+                            break
+                        if get_task in done:
+                            event = get_task.result()
+                            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+                        else:
+                            yield ": keepalive\n\n"
+                    except asyncio.CancelledError:
+                        get_task.cancel()
+                        stop_task.cancel()
+                        raise
             finally:
                 session.unsubscribe(queue)
 

@@ -42,9 +42,10 @@ STT_FIRST_LOAD_WAIT_S = 90.0  # how long a `listen` waits for the speech model o
 ROBOT_RATE = 48000  # robot speaker / mic: 48 kHz s16le mono
 STREAM_LEAD_S = 0.08  # keep ~4 frames queued on the robot
 LED_ENVELOPE_HZ = 25.0
-SILENCE_RMS = 500  # int16 RMS below which a mic chunk counts as quiet (listen end-of-speech)
-SILENCE_END_S = 1.2
-SPEECH_MIN_RMS = 0.004  # normalized RMS below which a recording is treated as silence (no transcription)
+SILENCE_RMS = 600  # int16 RMS (~0.018) above the robot's ~0.006 idle mic floor for speech onset/end
+SILENCE_END_S = 0.9
+PREROLL_CHUNKS = 30  # ~0.6 s of 20 ms chunks kept before speech onset so first syllables are never clipped
+SPEECH_MIN_RMS = 0.008  # normalized RMS below which a fixed-window recording is treated as silence
 _AUTO_SKIPPED = {"skipped": True, "reason": "speech or listening in progress",
                  "summary": "stayed quiet (something else is speaking/listening)"}
 
@@ -398,9 +399,11 @@ class VoiceCommands(CommandGroup):
         warnings: list[str] = a["_warnings"]
         secs = max(1.0, min(30.0, float(a.get("seconds") or 6.0)))
         until_silence = not a.get("fixed")
+        keep_intercom = bool(a.get("keep_intercom"))
         self.speech.warm_up_stt()  # load the model while recording
         busy = self.activity.begin_busy("listen")
         chunks: list[bytes] = []
+        heard_at: float | None = None
         try:
             ic = c.intercom
             unsub = ic.add_pcm_listener(lambda pcm: chunks.append(bytes(pcm)))
@@ -409,24 +412,34 @@ class VoiceCommands(CommandGroup):
                 if not ic.active:
                     await ic.start()
                     started_here = True
+                if keep_intercom:
+                    ic.speaker.adopt_session()
                 t0 = time.monotonic()
-                heard_at: float | None = None
                 quiet_since: float | None = None
-                while time.monotonic() - t0 < secs:
-                    await asyncio.sleep(0.1)
+                while True:
+                    now = time.monotonic()
+                    # Once speech starts, allow finishing the sentence (up to +8 s beyond `secs`, max 30 s).
+                    limit = min(30.0, max(secs, (heard_at - t0) + 8.0)) if heard_at is not None else secs
+                    if now - t0 >= limit:
+                        break
+                    await asyncio.sleep(0.08)
                     if not until_silence or not chunks:
                         continue
                     tail = np.frombuffer(b"".join(chunks[-10:]), dtype=np.int16).astype(np.float32)
                     loud = tail.size and float(np.sqrt(np.mean(tail * tail))) > SILENCE_RMS
                     if loud:
                         heard_at, quiet_since = heard_at or time.monotonic(), None
-                    elif heard_at:
+                    elif heard_at is None:
+                        # Trim idle buffer to a rolling ~0.6 s pre-roll so Whisper never receives seconds of dead air.
+                        if len(chunks) > PREROLL_CHUNKS:
+                            del chunks[:-PREROLL_CHUNKS]
+                    else:
                         quiet_since = quiet_since or time.monotonic()
                         if time.monotonic() - quiet_since > SILENCE_END_S:
                             break
             finally:
                 unsub()
-                if started_here:
+                if started_here and not keep_intercom:
                     try:
                         await ic.stop()
                     except Exception:  # the recording is done; a failing intercom stop is not the caller's problem
@@ -437,14 +450,21 @@ class VoiceCommands(CommandGroup):
                                  hint="The mic streams only while the intercom runs; check `nebi status` and retry.")
             x = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
             rms = float(np.sqrt(np.mean(x * x)))
-            path = Path(a["out"]) if a.get("out") else CACHE_DIR / "audio" / f"listen-{time.strftime('%Y%m%d-%H%M%S')}.wav"
-            await asyncio.to_thread(_save_wav, path, pcm)
-            out: dict[str, Any] = {"seconds": round(len(x) / ROBOT_RATE, 1), "loudness_rms": round(rms, 4), "wav": str(path.resolve())}
-            if rms < SPEECH_MIN_RMS:
+            save_wav = bool(a.get("out")) or not bool(a.get("no_save"))
+            out: dict[str, Any] = {"seconds": round(len(x) / ROBOT_RATE, 1), "loudness_rms": round(rms, 4)}
+            if save_wav:
+                path = Path(a["out"]) if a.get("out") else CACHE_DIR / "audio" / f"listen-{time.strftime('%Y%m%d-%H%M%S')}.wav"
+                await asyncio.to_thread(_save_wav, path, pcm)
+                out["wav"] = str(path.resolve())
+            if (until_silence and heard_at is None) or rms < SPEECH_MIN_RMS:
                 out.update(text="", speech=False, summary="silence (nothing loud enough to transcribe)")
                 return out
             ready = await self.speech.stt_ready(STT_FIRST_LOAD_WAIT_S)
             if ready is None:
+                if not save_wav:
+                    path = CACHE_DIR / "audio" / f"listen-{time.strftime('%Y%m%d-%H%M%S')}.wav"
+                    await asyncio.to_thread(_save_wav, path, pcm)
+                    out["wav"] = str(path.resolve())
                 out.update(text=None, stt="missing", summary="recorded audio, but speech-to-text is not installed",
                            hint="pip install mlx-whisper into the nebi venv (Apple Silicon)")
                 return out
@@ -452,13 +472,25 @@ class VoiceCommands(CommandGroup):
                 warnings.append("loading speech model (first use, may download ~1.5 GB); retry `nebi listen` in a minute.")
                 out.update(text=None, stt="loading", summary="recorded audio; the speech model is still loading, retry shortly")
                 return out
-            n = len(x) // 3 * 3
-            x16 = x[:n].reshape(-1, 3).mean(axis=1)  # 48 kHz -> 16 kHz
-            kw: dict[str, Any] = {"path_or_hf_repo": STT_MODEL}
+            try:
+                from scipy.signal import resample_poly
+
+                x16 = resample_poly(x, 1, 3).astype(np.float32)
+            except ImportError:
+                n = len(x) // 3 * 3
+                x16 = x[:n].reshape(-1, 3).mean(axis=1)  # 48 kHz -> 16 kHz
+            kw: dict[str, Any] = {"path_or_hf_repo": STT_MODEL, "condition_on_previous_text": False}
             if a.get("language"):
                 kw["language"] = a["language"]
+            if a.get("prompt"):
+                kw["initial_prompt"] = str(a["prompt"])
             r = await asyncio.to_thread(_transcribe, x16, kw)
-            text = (r.get("text") or "").strip()
+            segments = r.get("segments")
+            if isinstance(segments, list) and segments:
+                kept = [str(s.get("text") or "").strip() for s in segments if float(s.get("no_speech_prob", 0.0)) <= 0.65]
+                text = " ".join(part for part in kept if part).strip()
+            else:
+                text = (r.get("text") or "").strip()
             out.update(text=text, language=r.get("language"), speech=bool(text),
                        summary=f'heard: "{text}"' if text else "sound but no words recognised")
             return out

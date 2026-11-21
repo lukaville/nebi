@@ -35,6 +35,9 @@ class RobotTarget:
         return "auto"
 
 
+_AUDIO_COMMANDS: frozenset[str] = frozenset({"say", "sound", "emote"})
+
+
 class RobotBridge:
     """Unified async interface to `nebi-cli`'s safe `AgentRuntime` commands.
 
@@ -52,7 +55,10 @@ class RobotBridge:
         self._http: httpx.AsyncClient | None = None
         self._started = False
         self._last_snapshot_path: Path | None = None
+        self._last_snapshot_bytes: bytes | None = None
         self._last_event_seq: int = 0
+        self.speech_epoch: int = 0
+        self.speaking: bool = False
 
     @property
     def is_remote(self) -> bool:
@@ -68,19 +74,37 @@ class RobotBridge:
             return await self.state()
 
         if self.is_remote:
-            self._http = httpx.AsyncClient(base_url=self.target.daemon_url.rstrip("/"), timeout=60.0)
-            resp = await self._http.get("/agent/ping")
-            resp.raise_for_status()
+            client = httpx.AsyncClient(base_url=self.target.daemon_url.rstrip("/"), timeout=60.0)
+            try:
+                resp = await client.get("/agent/ping")
+                resp.raise_for_status()
+            except BaseException:
+                await client.aclose()
+                raise
+            self._http = client
             self._started = True
             return await self.state()
 
         from nebi_cli.runtime import AgentRuntime
         from nebi_cockpit.app import NebiServerManager
 
-        self._manager = NebiServerManager(start_simulator=False)
-        self._runtime = AgentRuntime(self._manager, embedded=False)
-        await self._manager.startup()
-        await self._runtime.start()
+        manager = NebiServerManager(start_simulator=False)
+        runtime = AgentRuntime(manager, embedded=False)
+        try:
+            await manager.startup()
+            await runtime.start()
+        except BaseException:
+            try:
+                await runtime.stop()
+            except Exception:
+                pass
+            try:
+                await manager.shutdown()
+            except Exception:
+                pass
+            raise
+        self._manager = manager
+        self._runtime = runtime
         self._started = True
 
         connect_args: dict[str, Any] = {}
@@ -126,14 +150,23 @@ class RobotBridge:
     async def call(self, command: str, args: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute one `nebi-cli` agent command and return its JSON response envelope."""
         payload = dict(args or {})
-        if self._http is not None:
-            resp = await self._http.post("/agent/call", json={"command": command, "args": payload})
-            resp.raise_for_status()
-            data: dict[str, Any] = resp.json()
-        elif self._runtime is not None:
-            data = await self._runtime.call(command, payload)
-        else:
-            raise RuntimeError("RobotBridge is not started; call `await bridge.start()` first.")
+        makes_sound = command in _AUDIO_COMMANDS or (command == "body" and not payload.get("silent"))
+        if makes_sound:
+            self.speech_epoch += 1
+            self.speaking = True
+        try:
+            if self._http is not None:
+                resp = await self._http.post("/agent/call", json={"command": command, "args": payload})
+                resp.raise_for_status()
+                data: dict[str, Any] = resp.json()
+            elif self._runtime is not None:
+                data = await self._runtime.call(command, payload)
+            else:
+                raise RuntimeError("RobotBridge is not started; call `await bridge.start()` first.")
+        finally:
+            if makes_sound:
+                self.speech_epoch += 1
+                self.speaking = False
 
         if command == "look" and data.get("ok"):
             path_str = (data.get("result") or {}).get("path")
@@ -157,8 +190,15 @@ class RobotBridge:
         events = result.get("events")
         return list(events) if isinstance(events, list) else []
 
+    def set_latest_jpeg(self, jpeg_bytes: bytes) -> None:
+        """Cache a live camera JPEG frame in memory (e.g. from `/ws/video`)."""
+        if jpeg_bytes:
+            self._last_snapshot_bytes = jpeg_bytes
+
     def read_last_snapshot_bytes(self) -> bytes | None:
-        """Read the most recent JPEG captured via `look`, if available."""
+        """Read the most recent JPEG captured via `/ws/video` or `look`, if available."""
+        if self._last_snapshot_bytes is not None:
+            return self._last_snapshot_bytes
         if self._last_snapshot_path is not None and self._last_snapshot_path.is_file():
             try:
                 return self._last_snapshot_path.read_bytes()

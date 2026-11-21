@@ -14,7 +14,7 @@ status, and editing memories.
 
 - **DeepAgents harness**: Planning, tool use, and persistent filesystem memory via `create_deep_agent` +
   `FilesystemBackend(root_dir=~/.nebi-ai/memories, virtual_mode=True)`.
-- **Multi-provider LLMs**: Defaults to Google Gemini (`google_genai:gemini-2.5-flash`), and supports OpenAI,
+- **Multi-provider LLMs**: Defaults to Google Gemini (`google_genai:gemini-4-hydrogen`), and supports OpenAI,
   Anthropic, Ollama, or any LangChain `provider:model` string.
 - **Safe robot control**: Executes all robot actions through `nebi-cli`'s bounded `AgentRuntime` (obstacle stops,
   distance caps, carried-state checks, instant `STOP`).
